@@ -2,6 +2,7 @@ using System.Text;
 using JobSearchApp.Data;
 using JobSearchApp.Data.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -24,20 +25,8 @@ public static class DependencyInjection
     {
         app.Services.AddAuthorization();
         app.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(opt =>
-            {
-                opt.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = app.Configuration["Jwt:Issuer"],
-                    ValidAudience = app.Configuration["Jwt:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(app.Configuration["Jwt:Key"] ?? throw new InvalidOperationException()))
-                };
-            });
+            .AddBearerToken(IdentityConstants.BearerScheme);
+        app.Services.AddAuthorizationBuilder();
 
         app.Services.AddIdentityCore<User>()
             .AddEntityFrameworkStores<AppDbContext>()
@@ -46,7 +35,6 @@ public static class DependencyInjection
         app.Services.Configure<IdentityOptions>(options =>
         {
             options.Password.RequiredLength = 6;
-
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
             options.Lockout.MaxFailedAccessAttempts = 5;
             options.Lockout.AllowedForNewUsers = true;

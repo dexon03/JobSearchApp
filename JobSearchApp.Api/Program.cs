@@ -1,41 +1,56 @@
+using JobSearchApp.Api.Setup;
+using JobSearchApp.Data.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-
+builder.AddDependencies();
+    
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwaggerUI(options => options.SwaggerEndpoint("/openapi/v1.json", "JobSearchApp.Api v1"));
 }
+
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
+app.MapIdentityApi<User>();
+app.MapPost("api/account/register", async (RegisterRequest model,HttpContext ctx, UserManager<User> userManager) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    var newUser = new User
+    {
+        UserName = model.Email,
+        Email = model.Email,
+        FirstName = model.FirstName,
+        LastName = model.LastName,
+        // Set other properties
+    };
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+    var result = await userManager.CreateAsync(newUser, model.Password);
+    var user = await userManager.FindByEmailAsync(model.Email);
+    if (result.Succeeded)
+    {
+        // Your registration success logic
+        return Results.Ok(new { Message = "Registration successful" });
+    }
+
+    // If registration fails, return errors
+    return Results.BadRequest(new { Errors = result.Errors });
+});
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+public class RegisterRequest
 {
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public string Email { get; set; }
+    public string Password { get; set; }
 }
