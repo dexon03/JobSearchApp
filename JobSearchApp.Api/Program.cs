@@ -1,7 +1,7 @@
 using JobSearchApp.Api.Setup;
 using JobSearchApp.Data.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.Data;
+using RegisterRequest = JobSearchApp.Api.RegisterRequest;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,10 +47,13 @@ app.UseAuthorization();
 
 app.Run();
 
-public class RegisterRequest
+namespace JobSearchApp.Api
 {
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-    public string Email { get; set; }
-    public string Password { get; set; }
+    public class RegisterRequest
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
 }
