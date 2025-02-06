@@ -1,4 +1,6 @@
 using JobSearchApp.Data.Models;
+using JobSearchApp.Data.Models.Common;
+using JobSearchApp.Data.Models.Profiles;
 using JobSearchApp.Data.Models.Vacancies;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -8,9 +10,6 @@ namespace JobSearchApp.Data;
 public class AppDbContext(DbContextOptions<AppDbContext> options)
     : IdentityDbContext<User, Role, int>(options)
 {
-    public DbSet<User> Users { get; set; }
-    public DbSet<Role> Roles { get; set; }
-
     public DbSet<Vacancy> Vacancy { get; set; }
     public DbSet<Location> Location { get; set; }
     public DbSet<Skill> Skill { get; set; }
@@ -19,11 +18,19 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<LocationVacancy> LocationVacancy { get; set; }
     public DbSet<VacancySkill> VacancySkill { get; set; }
 
+    public DbSet<CandidateProfile> CandidateProfile { get; set; }
+    public DbSet<RecruiterProfile> RecruiterProfile { get; set; }
+    public DbSet<ProfileSkills> ProfileSkills { get; set; }
+    public DbSet<LocationProfile> LocationProfile { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
         SeedVacanciesModels(builder);
+        
+        builder.Entity<ProfileSkills>().HasKey(ps => new { ps.SkillId, ps.ProfileId });
+        builder.Entity<LocationProfile>().HasKey(lp => new { lp.LocationId, lp.ProfileId });
 
         builder.Entity<VacancySkill>(x =>
         {
@@ -38,6 +45,18 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
                 .HasForeignKey(vs => vs.VacancyId);
         });
 
+        builder.Entity<ProfileSkills>(x =>
+        {
+            x
+                .HasOne(ps => ps.Skill)
+                .WithMany(s => s.ProfileSkills)
+                .HasForeignKey(ps => ps.SkillId);
+            x
+                .HasOne(ps => ps.Profile)
+                .WithMany(p => p.ProfileSkills)
+                .HasForeignKey(ps => ps.ProfileId);
+        });
+
         builder.Entity<Vacancy>(x =>
         {
             x.HasOne(x => x.Category)
@@ -47,10 +66,22 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             x.HasOne(x => x.Company)
                 .WithMany()
                 .HasForeignKey(x => x.CompanyId);
-            
+
             x.HasOne(x => x.Recruiter)
                 .WithMany()
                 .HasForeignKey(x => x.Company);
+        });
+
+        builder.Entity<LocationProfile>(x =>
+        {
+            x
+                .HasOne(lp => lp.Location)
+                .WithMany(l => l.LocationProfiles)
+                .HasForeignKey(lp => lp.LocationId);
+            x
+                .HasOne(lp => lp.Profile)
+                .WithMany(p => p.LocationProfiles)
+                .HasForeignKey(lp => lp.ProfileId);
         });
     }
 

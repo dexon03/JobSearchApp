@@ -1,4 +1,7 @@
-namespace JobSearchApp.Data.Models.Vacancies;
+using JobSearchApp.Data.Models.Profiles;
+using JobSearchApp.Data.Models.Vacancies;
+
+namespace JobSearchApp.Data.Models.Common;
 
 public class Location
 {
@@ -7,4 +10,5 @@ public class Location
     public string City { get; set; }
 
     public virtual ICollection<LocationVacancy> LocationVacancy { get; set; } = [];
+    public virtual ICollection<LocationProfile> LocationProfiles { get; set; } = [];
 }

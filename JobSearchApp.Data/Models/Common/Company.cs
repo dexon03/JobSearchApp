@@ -1,4 +1,4 @@
-﻿namespace JobSearchApp.Data.Models.Vacancies;
+﻿namespace JobSearchApp.Data.Models.Common;
 
 public class Company
 {

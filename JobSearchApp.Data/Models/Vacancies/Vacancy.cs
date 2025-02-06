@@ -1,6 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization;
-using JobSearchApp.Data.Enums;
+﻿using JobSearchApp.Data.Enums;
+using JobSearchApp.Data.Models.Common;
 
 namespace JobSearchApp.Data.Models.Vacancies;
 

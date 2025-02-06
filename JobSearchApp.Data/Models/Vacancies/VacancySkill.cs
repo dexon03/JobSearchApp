@@ -1,4 +1,6 @@
-﻿namespace JobSearchApp.Data.Models.Vacancies;
+﻿using JobSearchApp.Data.Models.Common;
+
+namespace JobSearchApp.Data.Models.Vacancies;
 
 public class VacancySkill
 {
