@@ -3,6 +3,7 @@ using System;
 using JobSearchApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace JobSearchApp.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250206091726_AddedAllEntities")]
+    partial class AddedAllEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -36,7 +39,7 @@ namespace JobSearchApp.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Chats");
+                    b.ToTable("Chat");
                 });
 
             modelBuilder.Entity("JobSearchApp.Data.Models.Chat.Message", b =>
@@ -74,7 +77,7 @@ namespace JobSearchApp.Data.Migrations
 
                     b.HasIndex("SenderId");
 
-                    b.ToTable("Messages");
+                    b.ToTable("Message");
                 });
 
             modelBuilder.Entity("JobSearchApp.Data.Models.Common.Company", b =>
@@ -95,7 +98,7 @@ namespace JobSearchApp.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Companies");
+                    b.ToTable("Company");
                 });
 
             modelBuilder.Entity("JobSearchApp.Data.Models.Common.Location", b =>
@@ -116,7 +119,7 @@ namespace JobSearchApp.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Locations");
+                    b.ToTable("Location");
 
                     b.HasData(
                         new
@@ -183,7 +186,7 @@ namespace JobSearchApp.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Skills");
+                    b.ToTable("Skill");
 
                     b.HasData(
                         new
@@ -500,7 +503,7 @@ namespace JobSearchApp.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Category");
 
                     b.HasData(
                         new
@@ -601,7 +604,7 @@ namespace JobSearchApp.Data.Migrations
 
                     b.HasIndex("RecruiterId");
 
-                    b.ToTable("Vacancies");
+                    b.ToTable("Vacancy");
                 });
 
             modelBuilder.Entity("JobSearchApp.Data.Models.Vacancies.VacancySkill", b =>

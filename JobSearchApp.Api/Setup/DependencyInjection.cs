@@ -1,4 +1,5 @@
 using System.Text;
+using JobSearchApp.Core;
 using JobSearchApp.Data;
 using JobSearchApp.Data.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -14,6 +15,8 @@ public static class DependencyInjection
     public static IHostApplicationBuilder AddDependencies(this IHostApplicationBuilder app)
     {
         AddIdentity(app);
+        app.Services.AddInfrastructure(app.Configuration);
+        app.Services.AddCore();
 
         app.Services.AddDbContext<AppDbContext>(opt =>
             opt.UseNpgsql(app.Configuration.GetConnectionString("PostgresConnection")));
