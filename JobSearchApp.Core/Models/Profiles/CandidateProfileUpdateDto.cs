@@ -16,8 +16,6 @@ public class CandidateProfileUpdateDto : ProfileUpdateDto<CandidateProfile>
     public DateOnly DateBirth { get; set; }
     public string? Description { get; set; }
     public string? ImageUrl { get; set; }
-    public string? GitHubUrl { get; set; }
-    public string? LinkedInUrl { get; set; }
     public string? PositionTitle { get; set; }
     public bool IsActive { get; set; } = false;
     public Experience WorkExperience { get; set; }

@@ -1,7 +1,6 @@
 using JobSearchApp.Core.Contracts.Vacancies;
 using JobSearchApp.Core.Models.Vacancies;
 using JobSearchApp.Data;
-using JobSearchApp.Data.Models.Vacancies;
 using Microsoft.EntityFrameworkCore;
 
 namespace JobSearchApp.Core.Services.Vacancies;

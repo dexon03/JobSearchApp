@@ -73,6 +73,7 @@ public class VacancyService(AppDbContext db, IMapper mapper) : IVacanciesService
         return GetAllVacanciesByCondition(v => v.RecruiterId == recruiterId, vacancyFilter);
     }
 
+    //TODO: Add validation for category and company existence
     public async Task<Vacancy> CreateVacancy(VacancyCreateDto vacancyDto)
     {
         var vacancy = new Vacancy();

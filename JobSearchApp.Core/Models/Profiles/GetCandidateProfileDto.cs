@@ -14,8 +14,6 @@ public class GetCandidateProfileDto : ProfileDto<CandidateProfile>
     public DateOnly DateBirth { get; set; }
     public string? Description { get; set; }
     public string? ImageUrl { get; set; }
-    public string? GitHubUrl { get; set; }
-    public string? LinkedInUrl { get; set; }
     public string? PositionTitle { get; set; }
     public bool IsActive { get; set; } 
     public Experience WorkExperience { get; set; }
