@@ -32,6 +32,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     {
         base.OnModelCreating(builder);
 
+        SeedIdentityModels(builder);
         SeedVacanciesModels(builder);
         
         builder.Entity<ProfileSkills>().HasKey(ps => new { ps.SkillId, ps.ProfileId });
@@ -119,6 +120,36 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
                 .WithMany()
                 .HasForeignKey(x => x.ReceiverId); 
         });
+    }
+
+    private static void SeedIdentityModels(ModelBuilder builder)
+    {
+        var roles = new List<Role>()
+        {
+            new Role
+            {
+                Id = 1,
+                ConcurrencyStamp = "0194e1a2-d796-74b0-b821-a03b241d93f2",
+                Name = Enums.Role.Admin.ToString(),
+                NormalizedName = Enums.Role.Admin.ToString().ToUpper()
+            },
+            new Role
+            {
+                Id = 2,
+                ConcurrencyStamp = "0194e1a2-d796-7661-b01e-863d8c4c249d",
+                Name = Enums.Role.Recruiter.ToString(),
+                NormalizedName = Enums.Role.Recruiter.ToString().ToUpper()
+            },
+            new Role
+            {
+                Id = 3,
+                ConcurrencyStamp = "0194e1a2-d796-764c-8aae-1d6f768faf07",
+                Name = Enums.Role.Candidate.ToString(),
+                NormalizedName = Enums.Role.Candidate.ToString().ToUpper()
+            },
+        };
+        builder.Entity<Role>()
+            .HasData(roles);
     }
 
     private static void SeedVacanciesModels(ModelBuilder builder)

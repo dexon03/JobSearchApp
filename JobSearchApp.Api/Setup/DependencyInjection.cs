@@ -1,9 +1,9 @@
 using JobSearchApp.Core;
 using JobSearchApp.Data;
 using JobSearchApp.Data.Models;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Role = JobSearchApp.Data.Enums.Role;
 
 namespace JobSearchApp.Api.Setup;
 
@@ -13,7 +13,7 @@ public static class DependencyInjection
     {
         AddIdentity(app);
         app.Services.AddInfrastructure(app.Configuration);
-        app.Services.AddCore();
+        app.Services.AddCore(app.Configuration);
 
         app.Services.AddDbContext<AppDbContext>(opt =>
             opt.UseNpgsql(app.Configuration.GetConnectionString("PostgresConnection")));
@@ -24,11 +24,19 @@ public static class DependencyInjection
     private static void AddIdentity(IHostApplicationBuilder app)
     {
         app.Services.AddAuthorization();
-        app.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        app.Services.AddAuthentication()
             .AddBearerToken(IdentityConstants.BearerScheme);
-        app.Services.AddAuthorizationBuilder();
+        
+        app.Services.AddAuthorizationBuilder()
+            .AddPolicy(Role.Admin.ToString(), builder => 
+                builder.RequireRole(Role.Admin.ToString()))
+            .AddPolicy(Role.Recruiter.ToString(), builder => 
+                builder.RequireRole(Role.Recruiter.ToString()))
+            .AddPolicy(Role.Candidate.ToString(), builder => 
+                builder.RequireRole(Role.Candidate.ToString()));
 
         app.Services.AddIdentityCore<User>()
+            .AddRoles<Data.Models.Role>()
             .AddEntityFrameworkStores<AppDbContext>()
             .AddApiEndpoints();
 

@@ -1,7 +1,10 @@
 using JobSearchApp.Api.Setup;
+using JobSearchApp.Core.MessageContracts;
+using JobSearchApp.Core.Models.Identity;
 using JobSearchApp.Data.Models;
+using MassTransit;
 using Microsoft.AspNetCore.Identity;
-using RegisterRequest = JobSearchApp.Api.RegisterRequest;
+using Role = JobSearchApp.Data.Enums.Role;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,11 +19,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options => options.SwaggerEndpoint("/openapi/v1.json", "JobSearchApp.Api v1"));
 }
 
-
+SeedData.Initialize(app);
 app.UseHttpsRedirection();
 
 app.MapIdentityApi<User>();
-app.MapPost("api/account/register", async (RegisterRequest model,HttpContext ctx, UserManager<User> userManager) =>
+app.MapPost("api/account/register", async (RegisterDto model, UserManager<User> userManager, IPublishEndpoint publishEndpoint) =>
 {
     var newUser = new User
     {
@@ -28,32 +31,29 @@ app.MapPost("api/account/register", async (RegisterRequest model,HttpContext ctx
         Email = model.Email,
         FirstName = model.FirstName,
         LastName = model.LastName,
-        // Set other properties
     };
 
     var result = await userManager.CreateAsync(newUser, model.Password);
-    var user = await userManager.FindByEmailAsync(model.Email);
-    if (result.Succeeded)
+    if (!result.Succeeded) 
+        return Results.BadRequest(new { result.Errors });
+    
+    var user = await userManager.FindByEmailAsync(newUser.Email);
+    await userManager.AddToRoleAsync(user!, model.Role.ToString());
+    
+    await publishEndpoint.Publish<UserCreatedEvent>(new 
     {
-        // Your registration success logic
-        return Results.Ok(new { Message = "Registration successful" });
-    }
-
-    // If registration fails, return errors
-    return Results.BadRequest(new { Errors = result.Errors });
+        UserId = user.Id,
+        user.Email,
+        user.FirstName,
+        user.LastName,
+        user.PhoneNumber,
+        Role = model.Role.ToString()
+    });
+    
+    return Results.Ok(new { Message = "Registration successful" });
 });
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.Run();
-
-namespace JobSearchApp.Api
-{
-    public class RegisterRequest
-    {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Email { get; set; }
-        public string Password { get; set; }
-    }
-}
