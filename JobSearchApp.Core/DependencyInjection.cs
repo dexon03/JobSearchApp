@@ -2,9 +2,12 @@ using System.Reflection;
 using FluentValidation;
 using JobSearchApp.Core.Validation;
 using MassTransit;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SharpGrip.FluentValidation.AutoValidation.Endpoints.Extensions;
+using ZiggyCreatures.Caching.Fusion;
+using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
 namespace JobSearchApp.Core;
 
@@ -19,16 +22,25 @@ public static class DependencyInjection
         {
             opt.OverrideDefaultResultFactoryWith<FluentValidationAutoValidationCustomResultFactory>();
         });
-        
+
         services.AddMassTransit(x =>
         {
             x.SetKebabCaseEndpointNameFormatter();
             x.UsingRabbitMq((context, configurator) =>
             {
                 configurator.Host(configuration.GetConnectionString("RabbitMq"));
-                
+
                 configurator.ConfigureEndpoints(context);
             });
         });
+
+        services.AddFusionCache()
+            .WithDefaultEntryOptions(new FusionCacheEntryOptions { Duration = TimeSpan.FromMinutes(5) })
+            .WithSerializer(new FusionCacheSystemTextJsonSerializer())
+            .WithDistributedCache(
+                new RedisCache(new RedisCacheOptions
+                {
+                    Configuration = configuration.GetConnectionString("Redis")
+                }));
     }
 }

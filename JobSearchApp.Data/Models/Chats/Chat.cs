@@ -1,4 +1,4 @@
-namespace JobSearchApp.Data.Models.Chat;
+namespace JobSearchApp.Data.Models.Chats;
 
 public class Chat
 {

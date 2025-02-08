@@ -10,19 +10,21 @@ namespace JobSearchApp.Api.Setup;
 
 public static class DependencyInjection
 {
-    public static IHostApplicationBuilder AddDependencies(this WebApplicationBuilder app)
+    public static IHostApplicationBuilder AddDependencies(this WebApplicationBuilder builder)
     {
-        AddIdentity(app);
-        app.Services.AddInfrastructure(app.Configuration);
-        app.Services.AddCore(app.Configuration);
+        AddIdentity(builder);
+        builder.Services.AddInfrastructure(builder.Configuration);
+        builder.Services.AddCore(builder.Configuration);
         
-        app.Host.UseSerilog((context, loggerConfig) => 
+        builder.Host.UseSerilog((context, loggerConfig) => 
             loggerConfig.ReadFrom.Configuration(context.Configuration));
 
-        app.Services.AddDbContext<AppDbContext>(opt =>
-            opt.UseNpgsql(app.Configuration.GetConnectionString("PostgresConnection")));
+        builder.Services.AddDbContext<AppDbContext>(opt =>
+            opt.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
         
-        return app;
+        builder.Services.AddSignalR();
+        
+        return builder;
     }
 
     private static void AddIdentity(IHostApplicationBuilder app)

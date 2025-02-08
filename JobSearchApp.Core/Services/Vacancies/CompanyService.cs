@@ -4,25 +4,50 @@ using JobSearchApp.Core.Models.Vacancies;
 using JobSearchApp.Data;
 using JobSearchApp.Data.Models.Common;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace JobSearchApp.Core.Services.Vacancies;
 
-public class CompanyService(AppDbContext db, IMapper mapper) : ICompanyService
+public class CompanyService(AppDbContext db, IMapper mapper, IFusionCache hybridCache, ILogger logger) : ICompanyService
 {
-    public Task<List<Company>> GetAllCompanies()
+    public async Task<List<Company>> GetAllCompanies()
     {
-        return db.Companies.ToListAsync();
+        var cacheKey = "all_companies";
+        var cacheTag = "companies";
+
+        return await hybridCache.GetOrSetAsync(
+            cacheKey,
+            async ctx =>
+            {
+                logger.Information("Cache miss for {CacheKey}. Fetching all companies from DB...", cacheKey);
+                var companies = await db.Companies.ToListAsync(ctx);
+                logger.Information("Fetched {Count} companies from DB.", companies.Count);
+                return companies;
+            },
+            tags: [cacheTag]
+        );
     }
 
     public async Task<Company> GetCompanyById(int id)
     {
-        var company = await db.Companies.FindAsync(id);
-        if (company == null)
-        {
-            throw new Exception("Company not found");
-        }
+        var cacheKey = $"company_{id}";
 
-        return company;
+        return await hybridCache.GetOrSetAsync(
+            cacheKey,
+            async ctx =>
+            {
+                logger.Information("Cache miss for {CacheKey}. Fetching company from DB...", cacheKey);
+                var company = await db.Companies.FindAsync(new object[] { id }, ctx);
+                if (company == null)
+                {
+                    throw new Exception("Company not found");
+                }
+
+                return company;
+            },
+            tags: [$"company_{id}"]
+        );
     }
 
     public async Task<Company> CreateCompany(CompanyCreateDto company)
@@ -30,6 +55,9 @@ public class CompanyService(AppDbContext db, IMapper mapper) : ICompanyService
         var companyEntity = mapper.Map<Company>(company);
         var result = db.Companies.Add(companyEntity);
         await db.SaveChangesAsync();
+
+        await hybridCache.RemoveByTagAsync("companies");
+        logger.Information("New company created. Cache invalidated.");
         return result.Entity;
     }
 
@@ -39,11 +67,16 @@ public class CompanyService(AppDbContext db, IMapper mapper) : ICompanyService
         var isExist = await db.Companies.AnyAsync(x => x.Id == companyEntity.Id);
         if (!isExist)
         {
-            throw new Exception("Company that you trying to update, not exist");
+            throw new Exception("Company that you are trying to update does not exist");
         }
 
         var result = db.Update(companyEntity);
         await db.SaveChangesAsync();
+
+        await hybridCache.RemoveByTagAsync($"company_{companyEntity.Id}");
+        await hybridCache.RemoveByTagAsync("companies");
+
+        logger.Information("Company {CompanyId} updated. Cache invalidated.", companyEntity.Id);
         return result.Entity;
     }
 
@@ -57,5 +90,10 @@ public class CompanyService(AppDbContext db, IMapper mapper) : ICompanyService
 
         db.Companies.Remove(company);
         await db.SaveChangesAsync();
+
+        await hybridCache.RemoveByTagAsync($"company_{id}");
+        await hybridCache.RemoveByTagAsync("companies");
+
+        logger.Information("Company {CompanyId} deleted. Cache invalidated.", id);
     }
 }

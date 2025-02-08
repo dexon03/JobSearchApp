@@ -1,5 +1,5 @@
 using JobSearchApp.Data.Models;
-using JobSearchApp.Data.Models.Chat;
+using JobSearchApp.Data.Models.Chats;
 using JobSearchApp.Data.Models.Common;
 using JobSearchApp.Data.Models.Profiles;
 using JobSearchApp.Data.Models.Vacancies;

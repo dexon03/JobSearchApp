@@ -31,7 +31,16 @@
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
       - rabbitmq-logs:/var/log/rabbitmq
-
+  
+  jobsearchapp.redis:
+    image: "redis"
+    container_name: redis
+    hostname: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+  
 volumes:
     jobsearchapp-db:
     rabbitmq-data:
