@@ -4,7 +4,7 @@ using JobSearchApp.Core.Models.Identity;
 using JobSearchApp.Data.Models;
 using MassTransit;
 using Microsoft.AspNetCore.Identity;
-using Role = JobSearchApp.Data.Enums.Role;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,9 +20,12 @@ if (app.Environment.IsDevelopment())
 }
 
 SeedData.Initialize(app);
+
 app.UseHttpsRedirection();
 
+app.UseEndpoints();
 app.MapIdentityApi<User>();
+
 app.MapPost("api/account/register", async (RegisterDto model, UserManager<User> userManager, IPublishEndpoint publishEndpoint) =>
 {
     var newUser = new User
@@ -56,4 +59,5 @@ app.MapPost("api/account/register", async (RegisterDto model, UserManager<User> 
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseSerilogRequestLogging();
 app.Run();

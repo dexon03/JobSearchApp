@@ -3,17 +3,21 @@ using JobSearchApp.Data;
 using JobSearchApp.Data.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using Role = JobSearchApp.Data.Enums.Role;
 
 namespace JobSearchApp.Api.Setup;
 
 public static class DependencyInjection
 {
-    public static IHostApplicationBuilder AddDependencies(this IHostApplicationBuilder app)
+    public static IHostApplicationBuilder AddDependencies(this WebApplicationBuilder app)
     {
         AddIdentity(app);
         app.Services.AddInfrastructure(app.Configuration);
         app.Services.AddCore(app.Configuration);
+        
+        app.Host.UseSerilog((context, loggerConfig) => 
+            loggerConfig.ReadFrom.Configuration(context.Configuration));
 
         app.Services.AddDbContext<AppDbContext>(opt =>
             opt.UseNpgsql(app.Configuration.GetConnectionString("PostgresConnection")));
