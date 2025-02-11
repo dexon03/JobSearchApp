@@ -32,15 +32,13 @@ public static class ProfileEndpoints
             .WithOpenApi();
 
         profileGroup.MapGet("/candidate/{profileId}",
-                async (int profileId, IProfileService profileService) =>
-                {
-                    return Results.Ok(await profileService.GetCandidateProfile(profileId));
-                })
+                async (int profileId, IProfileService profileService) => Results.Ok((object?)await profileService.GetCandidateProfile(profileId)))
             .WithName("GetCandidateProfile")
             .WithOpenApi();
 
         profileGroup.MapGet("/candidates",
-                async ([AsParameters] CandidateFilterParameters filter, [FromServices]IProfileService profileService) =>
+                async ([AsParameters] CandidateFilterParameters filter,
+                    [FromServices] IProfileService profileService) =>
                 {
                     return Results.Ok(await profileService.GetAllCandidatesProfiles(filter));
                 })
@@ -49,9 +47,7 @@ public static class ProfileEndpoints
 
         profileGroup.MapPut("/candidate",
                 async (CandidateProfileUpdateDto profile, IProfileService profileService) =>
-                {
-                    return Results.Ok(await profileService.UpdateCandidateProfile(profile));
-                })
+                    Results.Ok((object?)await profileService.UpdateCandidateProfile(profile)))
             .WithName("UpdateCandidateProfile")
             .WithOpenApi();
 

@@ -27,7 +27,7 @@ SeedData.Initialize(app);
 app.UseHttpsRedirection();
 
 app.UseEndpoints();
-app.MapIdentityApi<User>();
+app.MapGroup("/api/identity/").MapIdentityApi<User>();
 
 // TODO: move to endpoints
 app.MapPost("api/account/register", async (RegisterDto model, UserManager<User> userManager, IPublishEndpoint publishEndpoint) =>

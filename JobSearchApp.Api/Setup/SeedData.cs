@@ -18,9 +18,9 @@ public class SeedData
         {
             FirstName = "Admin",
             LastName = "Admin",
-            Email = "admin@example.com",
-            NormalizedEmail = "ADMIN@EXAMPLE.COM",
-            UserName = "admin@example.com",
+            Email = "admin@admin.com",
+            NormalizedEmail = "ADMIN@admin.COM",
+            UserName = "admin@admin.com",
             NormalizedUserName = "ADMIN",
             PhoneNumber = "+111111111111",
             EmailConfirmed = true,
@@ -35,7 +35,7 @@ public class SeedData
             var hashed = password.HashPassword(user, "admin");
             user.PasswordHash = hashed;
 
-            var result = userManager.CreateAsync(user);
+            userManager.CreateAsync(user).Wait();
             userManager.AddToRoleAsync(user, Role.Admin.ToString());
         }
 
