@@ -2,6 +2,7 @@ using JobSearchApp.Core.Contracts.Vacancies;
 using JobSearchApp.Core.Models.Vacancies;
 using JobSearchApp.Data.Enums;
 using JobSearchApp.Data.Models.Common;
+using Microsoft.AspNetCore.Mvc;
 
 namespace JobSearchApp.Api.Endpoints;
 
@@ -54,11 +55,12 @@ public static class SkillsEndpoints
             .WithName("DeleteSkill")
             .WithOpenApi();
 
-        skillGroup.MapDelete("/many", async (Skill[] skills, ISkillService skillService) =>
-            {
-                await skillService.DeleteManySkills(skills);
-                return Results.Ok();
-            })
+        skillGroup.MapDelete("/deleteMany",
+                async ([FromQuery] int[] skills, [FromServices] ISkillService skillService) =>
+                {
+                    await skillService.DeleteManySkills(skills);
+                    return Results.Ok();
+                })
             .RequireAuthorization(Role.Admin.ToString(), Role.Recruiter.ToString(), "CompanyOwner")
             .WithName("DeleteManySkills")
             .WithOpenApi();

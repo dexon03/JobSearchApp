@@ -10,5 +10,5 @@ public interface ILocationService
     Task<Location> CreateLocation(LocationCreateDto location);
     Task<Location> UpdateLocation(LocationUpdateDto location);
     Task DeleteLocation(int id);
-    Task DeleteManyLocations(Location[] locations);
+    Task DeleteManyLocations(int[] locations);
 }

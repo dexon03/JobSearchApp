@@ -2,7 +2,7 @@ using JobSearchApp.Data.Enums;
 
 namespace JobSearchApp.Core.Models.Profiles;
 
-public record CandidateFilterParameters
+public class CandidateFilterParameters
 {
     public string? SearchTerm { get; set; }
     public int Page { get; set; }

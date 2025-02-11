@@ -111,10 +111,9 @@ public class LocationService(AppDbContext db, IMapper mapper, IFusionCache hybri
         _log.Information("Location {LocationId} deleted. Cache invalidated.", id);
     }
 
-    public async Task DeleteManyLocations(Location[] locations)
+    public async Task DeleteManyLocations(int[] locations)
     {
-        db.Locations.RemoveRange(locations);
-        await db.SaveChangesAsync();
+        await db.Locations.Where(x => locations.Contains(x.Id)).ExecuteDeleteAsync();
 
         await hybridCache.RemoveByTagAsync("locations");
         _log.Information("Multiple locations deleted. Cache invalidated.");

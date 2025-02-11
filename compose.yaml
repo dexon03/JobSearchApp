@@ -6,9 +6,13 @@
       dockerfile: JobSearchApp.Api/Dockerfile
     ports:
       - "5000:8080"
+    depends_on:
+      - jobsearchapp.db
+      - jobsearchapp.rabbitmq
+      - jobsearchapp.redis
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
-      
+  
   
   jobsearchapp.db:
     image: postgres
@@ -17,10 +21,10 @@
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: JobSearchAppDb
     ports:
-        - "5432:5432"
+      - "5432:5432"
     volumes:
       - jobsearchapp-db:/var/lib/postgresql/data
-        
+  
   jobsearchapp.rabbitmq:
     image: "rabbitmq:management"
     container_name: rabbitmq
@@ -43,9 +47,9 @@
       - "6379:6379"
     volumes:
       - redis-data:/data
-  
+
 volumes:
-    jobsearchapp-db:
-    rabbitmq-data:
-    rabbitmq-logs:
-    redis-data:
+  jobsearchapp-db:
+  rabbitmq-data:
+  rabbitmq-logs:
+  redis-data:

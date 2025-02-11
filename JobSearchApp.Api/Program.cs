@@ -5,6 +5,7 @@ using JobSearchApp.Core.Models.Identity;
 using JobSearchApp.Data.Models;
 using MassTransit;
 using Microsoft.AspNetCore.Identity;
+using Scalar.AspNetCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,10 +15,11 @@ builder.AddDependencies();
     
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docker")
 {
     app.MapOpenApi();
     app.UseSwaggerUI(options => options.SwaggerEndpoint("/openapi/v1.json", "JobSearchApp.Api v1"));
+    app.MapScalarApiReference();    
 }
 
 SeedData.Initialize(app);
@@ -27,6 +29,7 @@ app.UseHttpsRedirection();
 app.UseEndpoints();
 app.MapIdentityApi<User>();
 
+// TODO: move to endpoints
 app.MapPost("api/account/register", async (RegisterDto model, UserManager<User> userManager, IPublishEndpoint publishEndpoint) =>
 {
     var newUser = new User

@@ -55,8 +55,8 @@ public static class LocationEndpoints
             .WithName("DeleteLocation")
             .WithOpenApi();
 
-        locationGroup.MapDelete("/many",
-                async ([FromBody] Location[] locations, [FromServices] ILocationService locationService) =>
+        locationGroup.MapDelete("/deleteMany",
+                async ([FromQuery] int[] locations, [FromServices] ILocationService locationService) =>
                 {
                     await locationService.DeleteManyLocations(locations);
                     return Results.Ok();

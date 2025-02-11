@@ -55,7 +55,7 @@ public static class CategoryEndpoints
             .WithName("DeleteCategory")
             .WithOpenApi();
 
-        categoryGroup.MapDelete("/many", async (Category[] categories, ICategoryService categoryService) =>
+        categoryGroup.MapPut("/deleteMany", async (Category[] categories, ICategoryService categoryService) =>
             {
                 await categoryService.DeleteMany(categories);
                 return Results.Ok();

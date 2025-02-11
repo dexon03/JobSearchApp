@@ -102,10 +102,9 @@ public class SkillService(AppDbContext db, IMapper mapper, IFusionCache hybridCa
         _log.Information("Skill {SkillId} deleted. Cache invalidated.", id);
     }
 
-    public async Task DeleteManySkills(Skill[] skills)
+    public async Task DeleteManySkills(int[] skills)
     {
-        db.Skills.RemoveRange(skills);
-        await db.SaveChangesAsync();
+        await db.Skills.Where(x => skills.Contains(x.Id)).ExecuteDeleteAsync();
 
         await hybridCache.RemoveByTagAsync("skills");
         _log.Information("Multiple skills deleted. Cache invalidated.");

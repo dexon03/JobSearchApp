@@ -1,6 +1,7 @@
 using JobSearchApp.Core.Contracts.Profiles;
 using JobSearchApp.Core.Models.Profiles;
 using JobSearchApp.Data.Enums;
+using Microsoft.AspNetCore.Mvc;
 
 namespace JobSearchApp.Api.Endpoints;
 
@@ -39,7 +40,7 @@ public static class ProfileEndpoints
             .WithOpenApi();
 
         profileGroup.MapGet("/candidates",
-                async (CandidateFilterParameters filter, IProfileService profileService) =>
+                async ([AsParameters] CandidateFilterParameters filter, [FromServices]IProfileService profileService) =>
                 {
                     return Results.Ok(await profileService.GetAllCandidatesProfiles(filter));
                 })

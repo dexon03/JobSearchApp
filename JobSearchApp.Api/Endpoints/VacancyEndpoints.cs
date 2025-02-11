@@ -19,7 +19,7 @@ public static class VacancyEndpoints
         .WithName("GetVacancyById")
         .WithOpenApi();
 
-        vacancyGroup.MapGet("/", async (VacancyFilterParameters vacancyFilter, IVacancyService vacanciesService) =>
+        vacancyGroup.MapGet("/", async ([AsParameters]VacancyFilterParameters vacancyFilter, IVacancyService vacanciesService) =>
         {
             return Results.Ok(await vacanciesService.GetAllVacancies(vacancyFilter));
         })

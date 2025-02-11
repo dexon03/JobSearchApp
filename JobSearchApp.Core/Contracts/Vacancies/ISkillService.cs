@@ -10,5 +10,5 @@ public interface ISkillService
     Task<Skill> CreateSkill(SkillCreateDto skill);
     Task<Skill> UpdateSkill(SkillUpdateDto skill);
     Task DeleteSkill(int id);
-    Task DeleteManySkills(Skill[] skills);
+    Task DeleteManySkills(int[] skills);
 }
