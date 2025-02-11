@@ -11,7 +11,7 @@ const RecruiterProfileComponent = ({ id }: { id: string }) => {
   const [getCompanyQuery, { data: companies }] = useLazyGetProfileCompaniesQuery();
   const [updateCandidateProfile, { error: updateError }] = useUpdateRecruiterProfileMutation();
   const [updateCompany] = useUpdateCompanyMutation();
-  const [createCompany, { data: createdCompany }] = useCreateCompanyMutation();
+  const [createCompany] = useCreateCompanyMutation();
   const dispatch = useAppDispatch();
 
   const [name, setName] = useState('');
@@ -61,7 +61,7 @@ const RecruiterProfileComponent = ({ id }: { id: string }) => {
     }
   }
 
-  const handleCompanySelection = (e) => {
+  const handleCompanySelection = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedValue: string = e.target.value;
     if (selectedValue === 'new') {
       setIsNewCompany(true);

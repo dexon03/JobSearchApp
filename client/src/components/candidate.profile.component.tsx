@@ -1,14 +1,31 @@
-import { TextField, Button, Container, Typography, Avatar, Checkbox, FormControlLabel, MenuItem, Select, InputLabel, OutlinedInput, Box } from '@mui/material';
-import { Input, Label } from "reactstrap";
-import { useGetUserCandidateProfileQuery, useLazyGetProfileLocationQuery, useLazyGetProfileSkillsQuery, useQuerySubscriptionCandidate, useUpdateCandidateProfileMutation } from '../app/features/profile/profile.api';
+import { Avatar, Box, Button, Checkbox, Container, FormControlLabel, InputLabel, MenuItem, OutlinedInput, Select, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { Experience } from '../models/profile/experience.enum';
-import { CandidateProfile } from '../models/profile/candidate.profile.model';
+import { Document, Page } from 'react-pdf';
+import { Input } from "reactstrap";
 import { showErrorToast } from '../app/features/common/popup';
 import { useLazyDownloadResumeQuery, useUploadResumeMutation } from '../app/features/profile/candidateResume.api';
-import { Document, Page } from 'react-pdf';
-import { useAppDispatch } from '../hooks/redux.hooks';
+import { useGetUserCandidateProfileQuery, useLazyGetProfileLocationQuery, useLazyGetProfileSkillsQuery, useQuerySubscriptionCandidate, useUpdateCandidateProfileMutation } from '../app/features/profile/profile.api';
 import { setCandidateProfile } from '../app/slices/profile.slice';
+import { useAppDispatch } from '../hooks/redux.hooks';
+import { CandidateProfile } from '../models/profile/candidate.profile.model';
+import { Experience } from '../models/profile/experience.enum';
+
+interface CandidateProfileState {
+  name: string;
+  surname: string;
+  email: string;
+  phoneNumber: string;
+  dateOfBirth: Date;
+  description: string;
+  gitHubUrl: string;
+  linkedInUrl: string;
+  positionTitle: string;
+  isActive: boolean;
+  desiredSalary: number;
+  workExperience: Experience;
+  selectedLocations: string[];
+  selectedSkills: string[];
+}
 
 const CandidateProfileComponent = ({ id }: { id: string }) => {
   const { data: profile, isError, isLoading, error } = useGetUserCandidateProfileQuery(id);
@@ -19,21 +36,24 @@ const CandidateProfileComponent = ({ id }: { id: string }) => {
   const [uploadResume] = useUploadResumeMutation();
   const [downloadResume] = useLazyDownloadResumeQuery();
 
-  const [name, setName] = useState('');
-  const [surname, setSurname] = useState('');
-  const [email, setEmail] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState(new Date());
-  const [description, setDescription] = useState('');
-  const [gitHubUrl, setGitHubUrl] = useState('');
-  const [linkedInUrl, setLinkedInUrl] = useState('');
-  const [positionTitle, setPositionTitle] = useState('');
-  const [isActive, setIsActive] = useState(false);
-  const [desiredSalary, setDesiredSalary] = useState(0);
-  const [workExperience, setWorkExperience] = useState(Experience.NoExperience);
-  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [profileState, setProfileState] = useState<CandidateProfileState>({
+    name: '',
+    surname: '',
+    email: '',
+    phoneNumber: '',
+    dateOfBirth: new Date(),
+    description: '',
+    gitHubUrl: '',
+    linkedInUrl: '',
+    positionTitle: '',
+    isActive: false,
+    desiredSalary: 0,
+    workExperience: Experience.NoExperience,
+    selectedLocations: [],
+    selectedSkills: [],
+  });
+
+  const [selectedFile, setSelectedFile] = useState<Blob | null>(null);
   const [numPages, setNumPages] = useState<number>();
   const dispatch = useAppDispatch();
 
@@ -41,28 +61,31 @@ const CandidateProfileComponent = ({ id }: { id: string }) => {
     if (profile) {
       getProfileSKills();
       getProfileLocations();
-      setName(profile.name || '');
-      setSurname(profile.surname || '');
-      setEmail(profile.email || '');
-      setPhoneNumber(profile.phoneNumber || '');
-      setDateOfBirth(profile.dateBirth || new Date());
-      setDescription(profile.description || '');
-      setGitHubUrl(profile.gitHubUrl || '');
-      setLinkedInUrl(profile.linkedInUrl || '');
-      setPositionTitle(profile.positionTitle || '');
-      setIsActive(profile.isActive);
-      setDesiredSalary(profile.desiredSalary || 0);
-      setWorkExperience(profile.workExperience || Experience.NoExperience);
-      setSelectedLocations(profile.locations ? profile.locations.map(location => location.id) : []);
-      setSelectedSkills(profile.skills ? profile.skills.map(skill => skill.id) : []);
+      setProfileState({
+        name: profile.name || '',
+        surname: profile.surname || '',
+        email: profile.email || '',
+        phoneNumber: profile.phoneNumber || '',
+        dateOfBirth: profile.dateBirth || new Date(),
+        description: profile.description || '',
+        gitHubUrl: profile.gitHubUrl || '',
+        linkedInUrl: profile.linkedInUrl || '',
+        positionTitle: profile.positionTitle || '',
+        isActive: profile.isActive,
+        desiredSalary: profile.desiredSalary || 0,
+        workExperience: profile.workExperience || Experience.NoExperience,
+        selectedLocations: profile.locations ? profile.locations.map(location => location.id) : [],
+        selectedSkills: profile.skills ? profile.skills.map(skill => skill.id) : [],
+      });
       downloadResume(profile.id).then((response) => {
-        const data = response.data;
-        const file = new Blob([data], { type: 'application/pdf' });
-        setSelectedFile(file)
+        if (response.data) {
+          const file = new Blob([response.data], { type: 'application/pdf' });
+          setSelectedFile(file);
+        }
       });
       dispatch(setCandidateProfile(profile));
     }
-  }, [profile]);
+  }, [dispatch, downloadResume, getProfileLocations, getProfileSKills, profile]);
 
   if (isLoading) {
     return <p>Loading...</p>;
@@ -72,27 +95,27 @@ const CandidateProfileComponent = ({ id }: { id: string }) => {
     return <p>Error: {JSON.stringify(error.data)}</p>;
   }
 
-  const handleSubmit = async (e) => {
-    console.log(workExperience);
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    console.log(profileState.workExperience);
     e.preventDefault();
     try {
       await updateCandidateProfile({
         id: profile?.id,
-        name: name,
-        surname: surname,
-        email: email,
-        phoneNumber: phoneNumber,
-        dateBirth: dateOfBirth,
-        description: description,
-        gitHubUrl: gitHubUrl,
-        linkedInUrl: linkedInUrl,
-        positionTitle: positionTitle,
-        isActive: isActive,
-        desiredSalary: desiredSalary,
-        workExperience: workExperience,
+        name: profileState.name,
+        surname: profileState.surname,
+        email: profileState.email,
+        phoneNumber: profileState.phoneNumber,
+        dateBirth: profileState.dateOfBirth,
+        description: profileState.description,
+        gitHubUrl: profileState.gitHubUrl,
+        linkedInUrl: profileState.linkedInUrl,
+        positionTitle: profileState.positionTitle,
+        isActive: profileState.isActive,
+        desiredSalary: profileState.desiredSalary,
+        workExperience: profileState.workExperience,
         imageUrl: undefined,
-        skills: skills?.filter(skill => selectedSkills.includes(skill.id)),
-        locations: locations?.filter(location => selectedLocations.includes(location.id))
+        skills: skills?.filter(skill => profileState.selectedSkills.includes(skill.id)),
+        locations: locations?.filter(location => profileState.selectedLocations.includes(location.id))
       } as CandidateProfile);
 
       if (updatedProfile) {
@@ -104,18 +127,18 @@ const CandidateProfileComponent = ({ id }: { id: string }) => {
 
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = (e: { target: HTMLInputElement; }) => {
     const fileInput = e.target as HTMLInputElement;
     const selectedFile = fileInput.files && fileInput.files[0];
     if (!selectedFile) {
       showErrorToast("Please upload a file")
+      return;
     }
-    const extension = selectedFile.name.split('.').pop().toLowerCase();
-
+    const extension = selectedFile!.name.split('.').pop()?.toLowerCase();
 
     if (extension !== 'pdf') {
       showErrorToast("File must be pdf");
-      e.target.value = null;
+      e.target.value = '';
     }
     else {
       setSelectedFile(selectedFile);
@@ -135,6 +158,15 @@ const CandidateProfileComponent = ({ id }: { id: string }) => {
     setNumPages(numPages);
   }
 
+  const handleInputChange = (field: keyof CandidateProfileState) => (
+    e: React.ChangeEvent<HTMLInputElement | { value: unknown }>
+  ) => {
+    setProfileState(prev => ({
+      ...prev,
+      [field]: e.target.value
+    }));
+  };
+
   return (
     profile &&
     <Container component="main" maxWidth="sm">
@@ -149,38 +181,38 @@ const CandidateProfileComponent = ({ id }: { id: string }) => {
             margin="normal"
             fullWidth
             required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={profileState.name}
+            onChange={handleInputChange('name')}
           />
           <TextField
             label="Surname"
             margin="normal"
             fullWidth
             required
-            value={surname}
-            onChange={(e) => setSurname(e.target.value)}
+            value={profileState.surname}
+            onChange={handleInputChange('surname')}
           />
           <TextField
             label="Position Title"
             margin="normal"
             fullWidth
-            value={positionTitle}
-            onChange={(e) => setPositionTitle(e.target.value)}
+            value={profileState.positionTitle}
+            onChange={handleInputChange('positionTitle')}
           />
           <TextField
             label="Email"
             margin="normal"
             fullWidth
             required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={profileState.email}
+            onChange={handleInputChange('email')}
           />
           <TextField
             label="Phone Number"
             margin="normal"
             fullWidth
-            value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
+            value={profileState.phoneNumber}
+            onChange={handleInputChange('phoneNumber')}
           />
           <TextField
             label="Date of Birth"
@@ -190,16 +222,19 @@ const CandidateProfileComponent = ({ id }: { id: string }) => {
             InputLabelProps={{
               shrink: true,
             }}
-            value={dateOfBirth}
-            onChange={(e) => setDateOfBirth(e.target.value)}
+            value={profileState.dateOfBirth}
+            onChange={handleInputChange('dateOfBirth')}
           />
           <TextField
             label="Desired Salary"
             margin="normal"
             type='number'
             fullWidth
-            value={desiredSalary}
-            onChange={(e) => setDesiredSalary(Number(e.target.value))}
+            value={profileState.desiredSalary}
+            onChange={(e) => setProfileState(prev => ({
+              ...prev,
+              desiredSalary: Number(e.target.value)
+            }))}
           />
           <TextField
             select
@@ -207,9 +242,12 @@ const CandidateProfileComponent = ({ id }: { id: string }) => {
             margin="normal"
             fullWidth
             defaultValue={Experience.NoExperience}
-            value={workExperience}
+            value={profileState.workExperience}
             onChange={(e) => {
-              setWorkExperience(Number(e.target.value))
+              setProfileState(prev => ({
+                ...prev,
+                workExperience: Number(e.target.value) as Experience
+              }))
             }}
           >
             {Object.values(Experience).filter((v) => isNaN(Number(v))).map((value) => (
@@ -224,15 +262,18 @@ const CandidateProfileComponent = ({ id }: { id: string }) => {
             rows={4}
             margin="normal"
             fullWidth
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            value={profileState.description}
+            onChange={handleInputChange('description')}
           />
           <InputLabel>Locations</InputLabel>
           <Select
             multiple
             fullWidth
-            value={selectedLocations}
-            onChange={(e) => setSelectedLocations(e.target.value)}
+            value={profileState.selectedLocations}
+            onChange={(e) => setProfileState(prev => ({
+              ...prev,
+              selectedLocations: e.target.value as string[]
+            }))}
             input={<OutlinedInput label="Locations" />}
           >
             {locations && locations.map((location) => (
@@ -245,8 +286,11 @@ const CandidateProfileComponent = ({ id }: { id: string }) => {
           <Select
             multiple
             fullWidth
-            value={selectedSkills}
-            onChange={(e) => setSelectedSkills(e.target.value)}
+            value={profileState.selectedSkills}
+            onChange={(e) => setProfileState(prev => ({
+              ...prev,
+              selectedSkills: e.target.value as string[]
+            }))}
             input={<OutlinedInput label="Skills" />}
           >
             {skills && skills.map((skill) => (
@@ -259,21 +303,24 @@ const CandidateProfileComponent = ({ id }: { id: string }) => {
             label="GitHub URL"
             margin="normal"
             fullWidth
-            value={gitHubUrl}
-            onChange={(e) => setGitHubUrl(e.target.value)}
+            value={profileState.gitHubUrl}
+            onChange={handleInputChange('gitHubUrl')}
           />
           <TextField
             label="LinkedIn URL"
             margin="normal"
             fullWidth
-            value={linkedInUrl}
-            onChange={(e) => setLinkedInUrl(e.target.value)}
+            value={profileState.linkedInUrl}
+            onChange={handleInputChange('linkedInUrl')}
           />
           <FormControlLabel
             control={<Checkbox color="primary" />}
             label="Active"
-            value={isActive}
-            onChange={() => setIsActive(!isActive)}
+            value={profileState.isActive}
+            onChange={(e) => setProfileState(prev => ({
+              ...prev,
+              isActive: e.target.checked
+            }))}
           />
           <Button type="submit" fullWidth variant="contained" color="primary">
             Save
@@ -293,8 +340,8 @@ const CandidateProfileComponent = ({ id }: { id: string }) => {
             {selectedFile !== null && selectedFile.size > 0 ?
               <div className='mt-2' style={{ height: '700px', overflowY: 'scroll', border: '1px solid #ccc', marginBottom: '20px', borderRadius: '7px' }}>
                 <Document file={selectedFile} onLoadSuccess={onDocumentLoadSuccess}>
-                  {Array.apply(null, Array(numPages)).map((x, i) => i + 1).map(page => (
-                    <Page key={page} pageNumber={page} renderTextLayer={false} renderAnnotationLayer={false} />
+                  {[...Array(numPages)].map((_, i) => (
+                    <Page key={i + 1} pageNumber={i + 1} renderTextLayer={false} renderAnnotationLayer={false} />
                   ))}
                 </Document>
               </div>

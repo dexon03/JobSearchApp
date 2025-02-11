@@ -21,8 +21,23 @@ import { Role } from "../models/common/role.enum.ts";
 import { useAppDispatch, useAppSelector } from "../hooks/redux.hooks.ts";
 import { RoleRoute } from "../models/role_routes/role.routes.model.ts";
 
+declare module '@mui/material/styles' {
+    interface Palette {
+        myTheme: Palette['primary'];
+    }
+    interface PaletteOptions {
+        myTheme?: PaletteOptions['primary'];
+    }
+}
+
+declare module '@mui/material' {
+    interface AppBarPropsColorOverrides {
+        myTheme: true;
+    }
+}
+
 export function HeaderComponent() {
-    const { token, setToken } = useToken();
+    const { token } = useToken();
     const dispatch = useAppDispatch();
 
     const authRole = Role[token?.role as keyof typeof Role];

@@ -1,8 +1,8 @@
-import { Card, CardContent, Typography, Chip, Box, Button, CardActions } from "@mui/material";
-import { CandidateProfile } from "../models/profile/candidate.profile.model";
-import { Experience } from "../models/vacancy/experience.enum";
+import { Box, Button, Card, CardContent, Chip, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { AttendanceMode } from "../models/common/attendance.enum";
+import { CandidateProfile } from "../models/profile/candidate.profile.model";
+import { Experience } from "../models/vacancy/experience.enum";
 
 export function CandidateTile({ profile }: { profile: CandidateProfile }) {
     const countries = [...new Set(profile?.locations?.map(location => location.country))].join(', ');

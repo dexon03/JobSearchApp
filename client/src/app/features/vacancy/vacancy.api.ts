@@ -1,23 +1,22 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
-import { environment } from '../../../environment/environment';
-import { VacancyGetAll } from '../../../models/vacancy/vacancy.getall.dto';
 import { axiosBaseQuery } from '../../../api/axios.baseQuery';
-import { ApiServicesRoutes } from '../../../api/api.services.routes';
-import { VacancyGet } from '../../../models/vacancy/vacany.get.dto';
-import { VacancyCreate } from '../../../models/vacancy/vacancy.create.dto';
-import { SkillDto } from '../../../models/common/skill.dto';
+import { environment } from '../../../environment/environment';
 import { LocationDto } from '../../../models/common/location.dto';
-import { Category } from '../../../models/vacancy/category.model';
-import { VacancyUpdateModel } from '../../../models/vacancy/vacancy.update.dto';
-import { StatisticNode } from '../../../models/statistic/statistic.node';
-import { GenerateVacancyDescription } from '../../../models/vacancy/generated.desription';
+import { SkillDto } from '../../../models/common/skill.dto';
 import { VacancyFilter } from '../../../models/common/vacancy.filters';
+import { StatisticNode } from '../../../models/statistic/statistic.node';
+import { Category } from '../../../models/vacancy/category.model';
+import { GenerateVacancyDescription } from '../../../models/vacancy/generated.desription';
 import { GenerateVacancyDescriptionRequest } from '../../../models/vacancy/generateVacancyDescription.model';
+import { VacancyCreate } from '../../../models/vacancy/vacancy.create.dto';
+import { VacancyGetAll } from '../../../models/vacancy/vacancy.getall.dto';
+import { VacancyUpdateModel } from '../../../models/vacancy/vacancy.update.dto';
+import { VacancyGet } from '../../../models/vacancy/vacany.get.dto';
 
 export const vacancyApi = createApi({
     reducerPath: 'vacancyApi',
     tagTypes: ['VacancyAll', 'RecruiterVacancy', 'Statistic'],
-    baseQuery: axiosBaseQuery({ baseUrl: environment.apiUrl + ApiServicesRoutes.vacancy }),
+    baseQuery: axiosBaseQuery({ baseUrl: environment.apiUrl}),
     keepUnusedDataFor: 5,
     endpoints: (builder) => ({
         getVacancies: builder.query<VacancyGetAll[], VacancyFilter>({
