@@ -1,5 +1,11 @@
 using System.Reflection;
 using FluentValidation;
+using JobSearchApp.Core.Contracts.Chats;
+using JobSearchApp.Core.Contracts.Profiles;
+using JobSearchApp.Core.Contracts.Vacancies;
+using JobSearchApp.Core.Services.Chats;
+using JobSearchApp.Core.Services.Profiles;
+using JobSearchApp.Core.Services.Vacancies;
 using JobSearchApp.Core.Validation;
 using MassTransit;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
@@ -42,5 +48,25 @@ public static class DependencyInjection
                 {
                     Configuration = configuration.GetConnectionString("Redis")
                 }));
+
+        AddServices(services);
+    }
+
+    private static void AddServices(IServiceCollection services)
+    {
+        // Vacancy
+        services.AddScoped<IVacancyService, VacancyService>();
+        services.AddScoped<ICompanyService, CompanyService>();
+        services.AddScoped<ISkillService, SkillService>();
+        services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<ILocationService, LocationService>();
+        services.AddScoped<IStatisticService, StatisticService>();
+
+        //Profile
+        services.AddScoped<IProfileService, ProfileService>();
+        services.AddScoped<IPdfService, PdfService>();
+
+        //Chat
+        services.AddScoped<IChatService, ChatService>();
     }
 }

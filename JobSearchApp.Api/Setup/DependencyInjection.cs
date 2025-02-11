@@ -15,6 +15,7 @@ public static class DependencyInjection
         AddIdentity(builder);
         builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddCore(builder.Configuration);
+        builder.Services.AddSignalR();
         
         builder.Host.UseSerilog((context, loggerConfig) => 
             loggerConfig.ReadFrom.Configuration(context.Configuration));

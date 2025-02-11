@@ -1,3 +1,4 @@
+using JobSearchApp.Api.Hubs;
 using JobSearchApp.Api.Setup;
 using JobSearchApp.Core.MessageContracts;
 using JobSearchApp.Core.Models.Identity;
@@ -59,5 +60,6 @@ app.MapPost("api/account/register", async (RegisterDto model, UserManager<User> 
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHub<ChatHub>("/chatHub");
 app.UseSerilogRequestLogging();
 app.Run();

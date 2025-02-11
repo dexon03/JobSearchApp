@@ -3,7 +3,7 @@ using JobSearchApp.Data.Models.Vacancies;
 
 namespace JobSearchApp.Core.Contracts.Vacancies;
 
-public interface IVacanciesService
+public interface IVacancyService
 {
     Task<List<VacancyGetAllDto>> GetAllVacancies(VacancyFilterParameters vacancyFilter);
     Task<VacancyGetDto> GetVacancyById(int id);

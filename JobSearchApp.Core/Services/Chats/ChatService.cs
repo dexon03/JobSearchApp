@@ -13,6 +13,8 @@ public class ChatService(
     IFusionCache hybridCache,
     ILogger logger) : IChatService
 {
+    private readonly ILogger _logger = logger.ForContext<ChatService>();
+
     public ValueTask<List<ChatDto>> GetChatList(int userId, int pageNumber, int pageSize)
     {
         var cacheKey = $"chat_list_{userId}_{pageNumber}_{pageSize}";
@@ -22,27 +24,36 @@ public class ChatService(
             cacheKey,
             async ctx =>
             {
-                logger.Information("Cache miss for {CacheKey}. Fetching from database...", cacheKey);
+                _logger.Information("Cache miss for {CacheKey}. Fetching from database...", cacheKey);
 
-                var chats = await db.Messages
-                    .Include(m => m.Chat)
-                    .AsSplitQuery()
+                var lastMessages = db.Messages
                     .Where(m => m.ReceiverId == userId || m.SenderId == userId)
-                    .OrderByDescending(x => x.TimeStamp)
-                    .GroupBy(m => m.Chat)
-                    .Select(g => new ChatDto
+                    .GroupBy(m => m.ChatId)
+                    .Select(g => new
                     {
-                        Id = g.Key.Id,
-                        Name = g.Key.Name,
-                        SenderOfLastMessage = g.OrderByDescending(m => m.TimeStamp).First().Sender.UserName!,
-                        LastMessage = g.OrderByDescending(m => m.TimeStamp).First().Content,
-                        IsLastMessageRead = g.OrderByDescending(m => m.TimeStamp).First().IsRead
+                        ChatId = g.Key,
+                        LastMessage = g.OrderByDescending(m => m.TimeStamp).First()
+                    });
+
+                var chats = await db.Chats
+                    .Where(c => db.Messages
+                        .Any(m => (m.ReceiverId == userId || m.SenderId == userId) && m.ChatId == c.Id))
+                    .OrderByDescending(c => lastMessages.FirstOrDefault(lm => lm.ChatId == c.Id)!.LastMessage.TimeStamp)
+                    .Select(c => new ChatDto
+                    {
+                        Id = c.Id,
+                        Name = c.Name,
+                        SenderOfLastMessage = lastMessages.FirstOrDefault(lm => lm.ChatId == c.Id)!.LastMessage.Sender
+                            .UserName!,
+                        LastMessage = lastMessages.FirstOrDefault(lm => lm.ChatId == c.Id)!.LastMessage.Content,
+                        IsLastMessageRead = lastMessages.FirstOrDefault(lm => lm.ChatId == c.Id)!.LastMessage.IsRead
                     })
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync(cancellationToken: ctx);
 
-                logger.Information("Fetched {Count} chats from database for user {UserId}.", chats.Count, userId);
+
+                _logger.Information("Fetched {Count} chats from database for user {UserId}.", chats.Count, userId);
                 return chats;
             },
             TimeSpan.FromMinutes(1),
@@ -59,7 +70,7 @@ public class ChatService(
             cacheKey,
             async _ =>
             {
-                logger.Information("Cache miss for {CacheKey}. Fetching messages from database...", cacheKey);
+                _logger.Information("Cache miss for {CacheKey}. Fetching messages from database...", cacheKey);
 
                 var messages = await db.Messages
                     .Include(m => m.Sender)
@@ -79,7 +90,7 @@ public class ChatService(
                     .OrderBy(m => m.TimeStamp)
                     .ToListAsync();
 
-                logger.Information("Fetched {Count} messages for chat {ChatId}.", messages.Count, chatId);
+                _logger.Information("Fetched {Count} messages for chat {ChatId}.", messages.Count, chatId);
                 return messages;
             },
             TimeSpan.FromMinutes(2),
@@ -107,7 +118,7 @@ public class ChatService(
             db.Messages.Add(newMessage);
             await db.SaveChangesAsync();
 
-            logger.Information("New message added to chat {ChatId} by user {SenderId}.", existentChat.ChatId,
+            _logger.Information("New message added to chat {ChatId} by user {SenderId}.", existentChat.ChatId,
                 chatDto.SenderId);
 
             await InvalidateChatCacheAsync(existentChat.ChatId, chatDto.SenderId, chatDto.ReceiverId);
@@ -139,7 +150,7 @@ public class ChatService(
         db.Messages.Add(message);
         await db.SaveChangesAsync();
 
-        logger.Information("Created new chat between {SenderId} and {ReceiverId}.", chatDto.SenderId,
+        _logger.Information("Created new chat between {SenderId} and {ReceiverId}.", chatDto.SenderId,
             chatDto.ReceiverId);
 
         await InvalidateChatCacheAsync(null, chatDto.SenderId, chatDto.ReceiverId);
@@ -160,12 +171,13 @@ public class ChatService(
         try
         {
             await Task.WhenAll(tasks);
-            logger.Information("Cache invalidated for chat {ChatId}, sender {SenderId}, receiver {ReceiverId}.", chatId,
+            _logger.Information("Cache invalidated for chat {ChatId}, sender {SenderId}, receiver {ReceiverId}.",
+                chatId,
                 senderId, receiverId);
         }
         catch (Exception ex)
         {
-            logger.Error(ex, "Cache invalidation failed for chat {ChatId}, sender {SenderId}, receiver {ReceiverId}.",
+            _logger.Error(ex, "Cache invalidation failed for chat {ChatId}, sender {SenderId}, receiver {ReceiverId}.",
                 chatId, senderId, receiverId);
         }
     }

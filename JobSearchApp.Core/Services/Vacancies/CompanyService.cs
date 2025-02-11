@@ -11,6 +11,8 @@ namespace JobSearchApp.Core.Services.Vacancies;
 
 public class CompanyService(AppDbContext db, IMapper mapper, IFusionCache hybridCache, ILogger logger) : ICompanyService
 {
+    private readonly ILogger _logger = logger.ForContext<CompanyService>();
+
     public async Task<List<Company>> GetAllCompanies()
     {
         var cacheKey = "all_companies";
@@ -20,9 +22,9 @@ public class CompanyService(AppDbContext db, IMapper mapper, IFusionCache hybrid
             cacheKey,
             async ctx =>
             {
-                logger.Information("Cache miss for {CacheKey}. Fetching all companies from DB...", cacheKey);
+                _logger.Information("Cache miss for {CacheKey}. Fetching all companies from DB...", cacheKey);
                 var companies = await db.Companies.ToListAsync(ctx);
-                logger.Information("Fetched {Count} companies from DB.", companies.Count);
+                _logger.Information("Fetched {Count} companies from DB.", companies.Count);
                 return companies;
             },
             tags: [cacheTag]
@@ -37,7 +39,7 @@ public class CompanyService(AppDbContext db, IMapper mapper, IFusionCache hybrid
             cacheKey,
             async ctx =>
             {
-                logger.Information("Cache miss for {CacheKey}. Fetching company from DB...", cacheKey);
+                _logger.Information("Cache miss for {CacheKey}. Fetching company from DB...", cacheKey);
                 var company = await db.Companies.FindAsync(new object[] { id }, ctx);
                 if (company == null)
                 {
@@ -57,7 +59,7 @@ public class CompanyService(AppDbContext db, IMapper mapper, IFusionCache hybrid
         await db.SaveChangesAsync();
 
         await hybridCache.RemoveByTagAsync("companies");
-        logger.Information("New company created. Cache invalidated.");
+        _logger.Information("New company created. Cache invalidated.");
         return result.Entity;
     }
 
@@ -76,7 +78,7 @@ public class CompanyService(AppDbContext db, IMapper mapper, IFusionCache hybrid
         await hybridCache.RemoveByTagAsync($"company_{companyEntity.Id}");
         await hybridCache.RemoveByTagAsync("companies");
 
-        logger.Information("Company {CompanyId} updated. Cache invalidated.", companyEntity.Id);
+        _logger.Information("Company {CompanyId} updated. Cache invalidated.", companyEntity.Id);
         return result.Entity;
     }
 
@@ -94,6 +96,6 @@ public class CompanyService(AppDbContext db, IMapper mapper, IFusionCache hybrid
         await hybridCache.RemoveByTagAsync($"company_{id}");
         await hybridCache.RemoveByTagAsync("companies");
 
-        logger.Information("Company {CompanyId} deleted. Cache invalidated.", id);
+        _logger.Information("Company {CompanyId} deleted. Cache invalidated.", id);
     }
 }

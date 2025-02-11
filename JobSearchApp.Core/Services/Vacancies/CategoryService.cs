@@ -12,6 +12,7 @@ namespace JobSearchApp.Core.Services.Vacancies;
 public class CategoryService(AppDbContext db, IMapper mapper, IFusionCache hybridCache, ILogger logger)
     : ICategoryService
 {
+    private readonly ILogger _logger = logger.ForContext<CategoryService>();
     public async Task<List<Category>> GetAllCategories()
     {
         var cacheKey = "all_categories";
@@ -21,9 +22,9 @@ public class CategoryService(AppDbContext db, IMapper mapper, IFusionCache hybri
             cacheKey,
             async ctx =>
             {
-                logger.Information("Cache miss for {CacheKey}. Fetching all categories from DB...", cacheKey);
+                _logger.Information("Cache miss for {CacheKey}. Fetching all categories from DB...", cacheKey);
                 var categories = await db.Categories.ToListAsync(ctx);
-                logger.Information("Fetched {Count} categories from DB.", categories.Count);
+                _logger.Information("Fetched {Count} categories from DB.", categories.Count);
                 return categories;
             },
             tags: [cacheTag]
@@ -38,7 +39,7 @@ public class CategoryService(AppDbContext db, IMapper mapper, IFusionCache hybri
             cacheKey,
             async ctx =>
             {
-                logger.Information("Cache miss for {CacheKey}. Fetching category from DB...", cacheKey);
+                _logger.Information("Cache miss for {CacheKey}. Fetching category from DB...", cacheKey);
                 var category = await db.Categories.FindAsync(new object[] { id }, ctx);
                 if (category is null)
                 {
@@ -58,7 +59,7 @@ public class CategoryService(AppDbContext db, IMapper mapper, IFusionCache hybri
         await db.SaveChangesAsync();
 
         await hybridCache.RemoveByTagAsync("categories");
-        logger.Information("New category created. Cache invalidated.");
+        _logger.Information("New category created. Cache invalidated.");
         return result.Entity;
     }
 
@@ -77,7 +78,7 @@ public class CategoryService(AppDbContext db, IMapper mapper, IFusionCache hybri
         await hybridCache.RemoveByTagAsync($"category_{categoryEntity.Id}");
         await hybridCache.RemoveByTagAsync("categories");
 
-        logger.Information("Category {CategoryId} updated. Cache invalidated.", categoryEntity.Id);
+        _logger.Information("Category {CategoryId} updated. Cache invalidated.", categoryEntity.Id);
         return result.Entity;
     }
 
@@ -95,7 +96,7 @@ public class CategoryService(AppDbContext db, IMapper mapper, IFusionCache hybri
         await hybridCache.RemoveByTagAsync($"category_{id}");
         await hybridCache.RemoveByTagAsync("categories");
 
-        logger.Information("Category {CategoryId} deleted. Cache invalidated.", id);
+        _logger.Information("Category {CategoryId} deleted. Cache invalidated.", id);
     }
 
     public async Task DeleteMany(Category[] categories)
@@ -104,6 +105,6 @@ public class CategoryService(AppDbContext db, IMapper mapper, IFusionCache hybri
         await db.SaveChangesAsync();
 
         await hybridCache.RemoveByTagAsync("categories");
-        logger.Information("Multiple categories deleted. Cache invalidated.");
+        _logger.Information("Multiple categories deleted. Cache invalidated.");
     }
 }

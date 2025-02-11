@@ -8,81 +8,97 @@ using JobSearchApp.Data;
 using JobSearchApp.Data.Models.Common;
 using JobSearchApp.Data.Models.Vacancies;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace JobSearchApp.Core.Services.Vacancies;
 
-public class VacancyService(AppDbContext db, IMapper mapper) : IVacanciesService
+public class VacancyService(AppDbContext db, IMapper mapper, IFusionCache hybridCache, ILogger logger)
+    : IVacancyService
 {
+    private readonly ILogger _log = logger.ForContext<VacancyService>();
+
     public async Task<List<VacancyGetAllDto>> GetAllVacancies(VacancyFilterParameters vacancyFilter)
     {
-        var vacancies = await GetAllVacanciesByCondition(v => v.IsActive == true, vacancyFilter);
-        return vacancies;
+        var cacheKey =
+            $"all_vacancies_{vacancyFilter.Page}_{vacancyFilter.PageSize}_{vacancyFilter.SearchTerm}_{vacancyFilter.Experience}_{vacancyFilter.AttendanceMode}_{vacancyFilter.Skill}_{vacancyFilter.Category}_{vacancyFilter.Location}";
+        var cacheTag = "vacancies";
+
+        return await hybridCache.GetOrSetAsync(
+            cacheKey,
+            async ctx =>
+            {
+                _log.Information("Cache miss for {CacheKey}. Fetching all active vacancies from DB...", cacheKey);
+                var vacancies = await GetAllVacanciesByCondition(v => v.IsActive, vacancyFilter);
+                _log.Information("Fetched {Count} vacancies from DB.", vacancies.Count);
+                return vacancies;
+            },
+            tags: [cacheTag]
+        );
     }
 
     public async Task<VacancyGetDto> GetVacancyById(int id)
     {
-        var vacancy = await db.Vacancies
-            .Where(v => v.Id == id)
-            .Include(v => v.Category)
-            .Include(v => v.Company)
-            .Include(v => v.LocationVacancy)
-            .ThenInclude(lv => lv.Location)
-            .Include(v => v.VacancySkill)
-            .ThenInclude(vs => vs.Skill)
-            .Select(v => new VacancyGetDto
+        var cacheKey = $"vacancy_{id}";
+
+        return await hybridCache.GetOrSetAsync(
+            cacheKey,
+            async ctx =>
             {
-                Id = v.Id,
-                RecruiterId = v.RecruiterId,
-                Title = v.Title,
-                Salary = v.Salary,
-                Experience = v.Experience,
-                CreatedAt = v.CreatedAt,
-                AttendanceMode = v.AttendanceMode,
-                Description = v.Description,
-                IsActive = v.IsActive,
-                Category = v.Category,
-                Locations = v.LocationVacancy
-                    .Select(lv => new Location
-                    {
-                        Id = lv.Location.Id,
-                        City = lv.Location.City,
-                        Country = lv.Location.Country
-                    })
-                    .ToList(),
-                Skills = v.VacancySkill
-                    .Select(vs => new Skill
-                    {
-                        Id = vs.Skill.Id,
-                        Name = vs.Skill.Name
-                    })
-                    .ToList()
-            })
-            .FirstOrDefaultAsync();
+                _log.Information("Cache miss for {CacheKey}. Fetching vacancy {VacancyId} from DB...", cacheKey, id);
+                var vacancy = await db.Vacancies
+                    .Where(v => v.Id == id)
+                    .Include(v => v.Category)
+                    .Include(v => v.Company)
+                    .Include(v => v.LocationVacancy).ThenInclude(lv => lv.Location)
+                    .Include(v => v.VacancySkill).ThenInclude(vs => vs.Skill)
+                    .Select(v => mapper.Map<VacancyGetDto>(v))
+                    .FirstOrDefaultAsync(ctx);
 
-        if (vacancy == null)
-        {
-            throw new ExceptionWithStatusCode("Vacancy not found", HttpStatusCode.BadRequest);
-        }
+                if (vacancy == null)
+                {
+                    _log.Warning("Vacancy {VacancyId} not found.", id);
+                    throw new ExceptionWithStatusCode("Vacancy not found", HttpStatusCode.BadRequest);
+                }
 
-        return vacancy;
+                return vacancy;
+            },
+            tags: [$"vacancy_{id}"]
+        );
     }
 
-    public Task<List<VacancyGetAllDto>> GetVacanciesByRecruiterId(int recruiterId,
+    public async Task<List<VacancyGetAllDto>> GetVacanciesByRecruiterId(int recruiterId,
         VacancyFilterParameters vacancyFilter)
     {
-        return GetAllVacanciesByCondition(v => v.RecruiterId == recruiterId, vacancyFilter);
+        var cacheKey = $"vacancies_recruiter_{recruiterId}_{vacancyFilter.Page}_{vacancyFilter.PageSize}";
+        var cacheTag = $"vacancies_recruiter_{recruiterId}";
+
+        return await hybridCache.GetOrSetAsync(
+            cacheKey,
+            async ctx =>
+            {
+                _log.Information("Cache miss for {CacheKey}. Fetching vacancies for recruiter {RecruiterId}...",
+                    cacheKey, recruiterId);
+                var vacancies = await GetAllVacanciesByCondition(v => v.RecruiterId == recruiterId, vacancyFilter);
+                _log.Information("Fetched {Count} vacancies for recruiter {RecruiterId}.", vacancies.Count,
+                    recruiterId);
+                return vacancies;
+            },
+            tags: [cacheTag]
+        );
     }
 
-    //TODO: Add validation for category and company existence
     public async Task<Vacancy> CreateVacancy(VacancyCreateDto vacancyDto)
     {
-        var vacancy = new Vacancy();
-        var vacancyEntity = mapper.Map(vacancyDto, vacancy);
-        vacancyEntity.CreatedAt = DateTime.Now;
+        var vacancy = mapper.Map<Vacancy>(vacancyDto);
+        vacancy.CreatedAt = DateTime.UtcNow;
 
-        var result = db.Vacancies.Add(vacancyEntity);
+        var result = db.Vacancies.Add(vacancy);
         await db.SaveChangesAsync();
 
+        await hybridCache.RemoveByTagAsync("vacancies");
+        await hybridCache.RemoveByTagAsync($"vacancies_recruiter_{vacancy.RecruiterId}");
+        _log.Information("New vacancy {VacancyId} created. Cache invalidated.", vacancy.Id);
         return result.Entity;
     }
 
@@ -91,15 +107,20 @@ public class VacancyService(AppDbContext db, IMapper mapper) : IVacanciesService
         var vacancyEntity = await db.Vacancies.FindAsync(vacancy.Id);
         if (vacancyEntity is null)
         {
-            throw new ExceptionWithStatusCode("Vacancy that you trying to update, not exist",
-                HttpStatusCode.BadRequest);
+            _log.Warning("Attempt to update non-existing vacancy {VacancyId}.", vacancy.Id);
+            throw new ExceptionWithStatusCode("Vacancy not found", HttpStatusCode.BadRequest);
         }
 
         vacancyEntity = mapper.Map(vacancy, vacancyEntity);
-        vacancyEntity.UpdatedAt = DateTime.Now;
+        vacancyEntity.UpdatedAt = DateTime.UtcNow;
 
         var result = db.Update(vacancyEntity);
         await db.SaveChangesAsync();
+
+        await hybridCache.RemoveByTagAsync($"vacancy_{vacancy.Id}");
+        await hybridCache.RemoveByTagAsync("vacancies");
+        await hybridCache.RemoveByTagAsync($"vacancies_recruiter_{vacancyEntity.RecruiterId}");
+        _log.Information("Vacancy {VacancyId} updated. Cache invalidated.", vacancyEntity.Id);
         return result.Entity;
     }
 
@@ -108,11 +129,17 @@ public class VacancyService(AppDbContext db, IMapper mapper) : IVacanciesService
         var vacancy = await db.Vacancies.FindAsync(id);
         if (vacancy == null)
         {
+            _log.Warning("Attempt to delete non-existing vacancy {VacancyId}.", id);
             throw new ExceptionWithStatusCode("Vacancy not found", HttpStatusCode.BadRequest);
         }
 
         db.Vacancies.Remove(vacancy);
         await db.SaveChangesAsync();
+
+        await hybridCache.RemoveByTagAsync($"vacancy_{id}");
+        await hybridCache.RemoveByTagAsync("vacancies");
+        await hybridCache.RemoveByTagAsync($"vacancies_recruiter_{vacancy.RecruiterId}");
+        _log.Information("Vacancy {VacancyId} deleted. Cache invalidated.", id);
     }
 
     public async Task ActivateDeactivateVacancy(int id)
@@ -120,14 +147,20 @@ public class VacancyService(AppDbContext db, IMapper mapper) : IVacanciesService
         var vacancy = await db.Vacancies.FindAsync(id);
         if (vacancy == null)
         {
+            _log.Warning("Attempt to toggle activation for non-existing vacancy {VacancyId}.", id);
             throw new ExceptionWithStatusCode("Vacancy not found", HttpStatusCode.BadRequest);
         }
 
         vacancy.IsActive = !vacancy.IsActive;
-        vacancy.UpdatedAt = DateTime.Now;
+        vacancy.UpdatedAt = DateTime.UtcNow;
         db.Update(vacancy);
 
         await db.SaveChangesAsync();
+
+        await hybridCache.RemoveByTagAsync($"vacancy_{id}");
+        await hybridCache.RemoveByTagAsync("vacancies");
+        await hybridCache.RemoveByTagAsync($"vacancies_recruiter_{vacancy.RecruiterId}");
+        _log.Information("Vacancy {VacancyId} activation toggled. Cache invalidated.", id);
     }
 
     private async Task<List<VacancyGetAllDto>> GetAllVacanciesByCondition(Expression<Func<Vacancy, bool>> predicate,
@@ -170,15 +203,9 @@ public class VacancyService(AppDbContext db, IMapper mapper) : IVacanciesService
                 .Where(v => v.LocationVacancy.Any(lv => lv.LocationId == vacancyFilter.Location));
         }
 
-        // TODO: Refactor this query
         var vacancies = await vacancyQuery
             .Where(predicate)
-            .Include(v => v.Company)
-            .Include(v => v.LocationVacancy)
-            .ThenInclude(lv => lv.Location)
-            .OrderBy(x => x.CreatedAt)
-            .Skip((vacancyFilter.Page - 1) * vacancyFilter.PageSize)
-            .Take(vacancyFilter.PageSize)
+            .OrderBy(v => v.CreatedAt)
             .Select(v => new VacancyGetAllDto
             {
                 Id = v.Id,
@@ -196,9 +223,14 @@ public class VacancyService(AppDbContext db, IMapper mapper) : IVacanciesService
                         City = lv.Location.City,
                         Country = lv.Location.Country
                     })
+                    .Distinct()
                     .ToList()
             })
+            .Skip((vacancyFilter.Page - 1) * vacancyFilter.PageSize)
+            .Take(vacancyFilter.PageSize)
+            .AsNoTracking()
             .ToListAsync();
+
 
         return vacancies;
     }
