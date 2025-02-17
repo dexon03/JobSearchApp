@@ -14,16 +14,16 @@ import { setCandidateProfile, setRecruiterProfile } from '../../app/slices/profi
 
 function RegisterPage() {
     const [selectedRole, setSelectedRole] = useState(0);
-    const { _, setToken } = useToken();
+    const { setToken } = useToken();
     const navigate = useNavigate();
     const restClient = new RestClient();
     const dispatch = useAppDispatch();
-    const handleRoleChange = (event) => {
-        setSelectedRole(event.target.value);
+    const handleRoleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSelectedRole(parseInt(event.target.value));
     };
 
     const onSubmit = async (values) => {
-        const token = await restClient.post<TokenResponse>(ApiServicesRoutes.identity + '/auth/register', {
+        const token = await restClient.post<TokenResponse>('/identity/register', {
             email: values.email,
             password: values.password,
             firstName: values.firstName,
@@ -33,12 +33,16 @@ function RegisterPage() {
         } as RegisterModel);
 
         setToken(token);
-        if (token.role === Role[Role.Candidate]) {
+        const role = await restClient.get(`/role`);
+
+        if (role === Role[Role.Candidate]) {
+            dispatch(setCandidateProfile(await restClient.get(`/profile/${Role.Candidate}`)));
             navigate('/vacancy');
-            dispatch(setCandidateProfile(await restClient.get(ApiServicesRoutes.profile + `/profile/${Role.Candidate}/${token.userId}`)));
-        } else {
+        } else if (role === Role[Role.Recruiter]) {
+            dispatch(setRecruiterProfile(await restClient.get(`/profile/${Role.Recruiter}`)));
             navigate('/candidate');
-            dispatch(setRecruiterProfile(await restClient.get(ApiServicesRoutes.profile + `/profile/${Role.Recruiter}/${token.userId}`)));
+        } else {
+            navigate('/users')
         }
     }
 

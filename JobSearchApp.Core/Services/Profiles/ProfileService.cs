@@ -10,6 +10,7 @@ using JobSearchApp.Data.Models.Profiles.Common;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
+using ZiggyCreatures.Caching.Fusion;
 using Role = JobSearchApp.Data.Enums.Role;
 
 namespace JobSearchApp.Core.Services.Profiles;
@@ -17,7 +18,7 @@ namespace JobSearchApp.Core.Services.Profiles;
 public class ProfileService(
     AppDbContext db,
     IMapper mapper,
-    HybridCache hybridCache,
+    IFusionCache hybridCache,
     IPdfService pdfService)
     : IProfileService
 {

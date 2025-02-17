@@ -1,33 +1,34 @@
-import { Container, Typography, TextField, Button } from '@mui/material';
-import { Formik, Field, Form, ErrorMessage } from 'formik';
-import { useNavigate, NavLink } from 'react-router-dom';
+import { Button, Container, TextField, Typography } from '@mui/material';
+import { ErrorMessage, Field, Form, Formik } from 'formik';
+import { NavLink, useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
-import { ApiServicesRoutes } from '../../api/api.services.routes';
 import { RestClient } from '../../api/rest.client';
+import { setCandidateProfile, setRecruiterProfile } from '../../app/slices/profile.slice';
+import { useAppDispatch } from '../../hooks/redux.hooks';
 import useToken from '../../hooks/useToken';
 import { TokenResponse } from '../../models/auth/jwt.respone';
 import { LoginModel } from '../../models/auth/login.model';
 import { Role } from '../../models/common/role.enum';
-import { useAppDispatch } from '../../hooks/redux.hooks';
-import { setCandidateProfile, setRecruiterProfile } from '../../app/slices/profile.slice';
 
 function LoginPage() {
     const navigate = useNavigate();
-    const { token, setToken } = useToken();
+    const { setToken } = useToken();
     const restClient = new RestClient();
     const dispatch = useAppDispatch();
 
-    const onSubmit = async (values) => {
-        const tokenResponse = await restClient.post<TokenResponse>(ApiServicesRoutes.identity + '/auth/login', {
+    const onSubmit = async (values: { email: string; password: string; }) => {
+        const tokenResponse = await restClient.post<TokenResponse>('/identity/login', {
             email: values.email,
             password: values.password
         } as LoginModel);
         setToken(tokenResponse);
-        if (tokenResponse.role === Role[Role.Candidate]) {
-            dispatch(setCandidateProfile(await restClient.get(ApiServicesRoutes.profile + `/profile/${Role.Candidate}/${tokenResponse.userId}`)));
+        const role = await restClient.get(`/role`);
+
+        if (role === Role[Role.Candidate]) {
+            dispatch(setCandidateProfile(await restClient.get(`/profile/${Role.Candidate}`)));
             navigate('/vacancy');
-        } else if (tokenResponse.role === Role[Role.Recruiter]) {
-            dispatch(setRecruiterProfile(await restClient.get(ApiServicesRoutes.profile + `/profile/${Role.Recruiter}/${tokenResponse.userId}`)));
+        } else if (role === Role[Role.Recruiter]) {
+            dispatch(setRecruiterProfile(await restClient.get(`/profile/${Role.Recruiter}`)));
             navigate('/candidate');
         } else {
             navigate('/users')

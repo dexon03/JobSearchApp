@@ -1,7 +1,10 @@
+using System.Security.Claims;
 using JobSearchApp.Core.Contracts.Profiles;
 using JobSearchApp.Core.Models.Profiles;
-using JobSearchApp.Data.Enums;
+using JobSearchApp.Data.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Role = JobSearchApp.Data.Enums.Role;
 
 namespace JobSearchApp.Api.Endpoints;
 
@@ -11,8 +14,11 @@ public static class ProfileEndpoints
     {
         var profileGroup = group.MapGroup("/profile").RequireAuthorization();
 
-        profileGroup.MapGet("/{role}/{userId}", async (int userId, Role role, IProfileService profileService) =>
+        profileGroup.MapGet("/{role}",
+                async (Role role, ClaimsPrincipal claims, IProfileService profileService,
+                    UserManager<User> userManager) =>
             {
+                var userId = int.Parse(userManager.GetUserId(claims) ?? throw new InvalidOperationException());
                 return role switch
                 {
                     Role.Candidate => Results.Ok(await profileService.GetCandidateProfileByUserId(userId)),

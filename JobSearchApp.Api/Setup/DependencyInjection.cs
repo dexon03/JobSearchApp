@@ -16,15 +16,14 @@ public static class DependencyInjection
         builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddCore(builder.Configuration);
         builder.Services.AddSignalR();
-        
-        builder.Host.UseSerilog((context, loggerConfig) => 
+
+        builder.Host.UseSerilog((context, loggerConfig) =>
             loggerConfig.ReadFrom.Configuration(context.Configuration));
 
-        builder.Services.AddDbContext<AppDbContext>(opt =>
-            opt.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
-        
         builder.Services.AddSignalR();
-        
+        builder.Services.AddCors(opt =>
+            opt.AddDefaultPolicy(c => c.AllowAnyMethod().AllowAnyOrigin().AllowAnyHeader().AllowCredentials()));
+
         return builder;
     }
 
@@ -33,13 +32,13 @@ public static class DependencyInjection
         app.Services.AddAuthorization();
         app.Services.AddAuthentication()
             .AddBearerToken(IdentityConstants.BearerScheme);
-        
+
         app.Services.AddAuthorizationBuilder()
-            .AddPolicy(Role.Admin.ToString(), builder => 
+            .AddPolicy(Role.Admin.ToString(), builder =>
                 builder.RequireRole(Role.Admin.ToString()))
-            .AddPolicy(Role.Recruiter.ToString(), builder => 
+            .AddPolicy(Role.Recruiter.ToString(), builder =>
                 builder.RequireRole(Role.Recruiter.ToString()))
-            .AddPolicy(Role.Candidate.ToString(), builder => 
+            .AddPolicy(Role.Candidate.ToString(), builder =>
                 builder.RequireRole(Role.Candidate.ToString()));
 
         app.Services.AddIdentityCore<User>()

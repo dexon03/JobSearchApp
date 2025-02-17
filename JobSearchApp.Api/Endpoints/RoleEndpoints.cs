@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using JobSearchApp.Data.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -14,19 +15,25 @@ public static class RoleEndpoints
         // Allow Anonymous Access
         roleGroup.WithMetadata(new AllowAnonymousAttribute());
 
-        roleGroup.MapGet("/", async (RoleManager<Role> roleManager) =>
-            {
-                var roles = await roleManager.Roles.ToListAsync();
-                return Results.Ok(roles);
-            })
-            .WithName("GetRoles")
-            .WithOpenApi();
+        // roleGroup.MapGet("/", async (RoleManager<Role> roleManager) =>
+        //     {
+        //         var roles = await roleManager.Roles.ToListAsync();
+        //         return Results.Ok(roles);
+        //     })
+        //     .WithName("GetRoles")
+        //     .WithOpenApi();
 
-        roleGroup.MapGet("/{id}", async (int id, RoleManager<Role> roleManager) =>
+        roleGroup.MapGet("/", async (ClaimsPrincipal claimsPrincipal, UserManager<User> userManager) =>
             {
-                var role = await roleManager.FindByIdAsync(id.ToString());
+                var user = await userManager.GetUserAsync(claimsPrincipal);
+                if (user is null)
+                {
+                    return Results.BadRequest("User not found");
+                }
+                var role = (await userManager.GetRolesAsync(user)).FirstOrDefault();
                 return role is not null ? Results.Ok(role) : Results.BadRequest("Role not found");
             })
+            .RequireAuthorization()
             .WithName("GetRole")
             .WithOpenApi();
     }

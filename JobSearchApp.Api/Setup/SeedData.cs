@@ -36,9 +36,9 @@ public class SeedData
             user.PasswordHash = hashed;
 
             userManager.CreateAsync(user).Wait();
-            userManager.AddToRoleAsync(user, Role.Admin.ToString());
+            userManager.AddToRoleAsync(user, "Admin").Wait();
         }
 
-        context.SaveChangesAsync();
+        context.SaveChanges();
     }
 }

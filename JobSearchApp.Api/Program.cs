@@ -24,6 +24,7 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docke
 
 SeedData.Initialize(app);
 
+app.UseCors();
 app.UseHttpsRedirection();
 
 app.UseEndpoints();
