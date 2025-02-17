@@ -30,7 +30,7 @@ api.interceptors.response.use(
             try {
                 const storageToken = localStorage.getItem('token');
                 const refreshToken = storageToken ? JSON.parse(storageToken)?.refreshToken : null;
-                const response = await axios.post(environment.apiUrl + '/api/identity/refresh', { refreshToken })
+                const response = await axios.post(environment.apiUrl + '/identity/refresh', { refreshToken })
 
                 const token = response.data;
                 const stringToken = JSON.stringify(token);
@@ -51,7 +51,7 @@ api.interceptors.response.use(
             showErrorToast(Object.values(error.response.data).join('\n'));
         }
         if (error.response.status === 500 || error.response.status === 400) {
-            showErrorToast(error.response.data.message);
+            showErrorToast(error.response.data.error);
         }
 
         return Promise.reject(error);

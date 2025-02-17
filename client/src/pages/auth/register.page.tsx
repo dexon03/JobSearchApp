@@ -1,20 +1,21 @@
-import { Container, Typography, TextField, Radio, FormControlLabel, Button, RadioGroup } from '@mui/material';
-import { Formik, Field, Form, ErrorMessage } from 'formik';
+import { Button, Container, FormControlLabel, Radio, RadioGroup, TextField, Typography } from '@mui/material';
+import { ErrorMessage, Field, Form, Formik } from 'formik';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
-import { ApiServicesRoutes } from '../../api/api.services.routes';
 import { RestClient } from '../../api/rest.client';
+import { setCandidateProfile, setRecruiterProfile } from '../../app/slices/profile.slice';
+import { useAppDispatch } from '../../hooks/redux.hooks';
 import useToken from '../../hooks/useToken';
 import { TokenResponse } from '../../models/auth/jwt.respone';
 import { RegisterModel } from '../../models/auth/register.model';
 import { Role } from '../../models/common/role.enum';
-import { useState } from 'react';
-import { useAppDispatch } from '../../hooks/redux.hooks';
-import { setCandidateProfile, setRecruiterProfile } from '../../app/slices/profile.slice';
+import useRole from '../../hooks/useRole';
 
 function RegisterPage() {
     const [selectedRole, setSelectedRole] = useState(0);
     const { setToken } = useToken();
+    const { setRole } = useRole();
     const navigate = useNavigate();
     const restClient = new RestClient();
     const dispatch = useAppDispatch();
@@ -33,7 +34,9 @@ function RegisterPage() {
         } as RegisterModel);
 
         setToken(token);
-        const role = await restClient.get(`/role`);
+        const role: string = await restClient.get(`/role`);
+        setRole(role);
+
 
         if (role === Role[Role.Candidate]) {
             dispatch(setCandidateProfile(await restClient.get(`/profile/${Role.Candidate}`)));

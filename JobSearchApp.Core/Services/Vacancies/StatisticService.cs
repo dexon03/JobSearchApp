@@ -9,8 +9,8 @@ public class StatisticService(AppDbContext db) : IStatisticService
 {
     public async Task<IEnumerable<StatisticNode>> GetStatisticAsync(string? filterSkill)
     {
-        DateTime lastYearStartDate = DateTime.Now.AddYears(-1);
-        DateTime lastYearEndDate = DateTime.Now;
+        var lastYearStartDate = DateTime.UtcNow.AddYears(-1);
+        var lastYearEndDate = DateTime.UtcNow;
         var vacancies = await db.Vacancies
             .Include(v => v.VacancySkill)
             .ThenInclude(vs => vs.Skill)

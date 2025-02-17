@@ -20,6 +20,7 @@ import useToken from "../hooks/useToken.ts";
 import { Role } from "../models/common/role.enum.ts";
 import { useAppDispatch, useAppSelector } from "../hooks/redux.hooks.ts";
 import { RoleRoute } from "../models/role_routes/role.routes.model.ts";
+import useRole from "../hooks/useRole.ts";
 
 declare module '@mui/material/styles' {
     interface Palette {
@@ -39,9 +40,9 @@ declare module '@mui/material' {
 export function HeaderComponent() {
     const { token } = useToken();
     const dispatch = useAppDispatch();
+    const { role } = useRole();
 
-    const authRole = Role[token?.role as keyof typeof Role];
-    const pages = RoleRoute[authRole];
+    const pages = role !== null ? RoleRoute[Role[role! as keyof typeof Role]] : [];
     const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
     const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
 

@@ -9,12 +9,14 @@ import useToken from '../../hooks/useToken';
 import { TokenResponse } from '../../models/auth/jwt.respone';
 import { LoginModel } from '../../models/auth/login.model';
 import { Role } from '../../models/common/role.enum';
+import useRole from '../../hooks/useRole';
 
 function LoginPage() {
     const navigate = useNavigate();
     const { setToken } = useToken();
     const restClient = new RestClient();
     const dispatch = useAppDispatch();
+    const { setRole } = useRole();
 
     const onSubmit = async (values: { email: string; password: string; }) => {
         const tokenResponse = await restClient.post<TokenResponse>('/identity/login', {
@@ -23,6 +25,7 @@ function LoginPage() {
         } as LoginModel);
         setToken(tokenResponse);
         const role = await restClient.get(`/role`);
+        setRole(role as string);
 
         if (role === Role[Role.Candidate]) {
             dispatch(setCandidateProfile(await restClient.get(`/profile/${Role.Candidate}`)));

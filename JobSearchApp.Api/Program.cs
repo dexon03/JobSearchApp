@@ -61,6 +61,8 @@ app.MapPost("api/account/register", async (RegisterDto model, UserManager<User> 
     return Results.Ok(new { Message = "Registration successful" });
 });
 
+app.UseExceptionHandler();
+
 app.UseAuthentication();
 app.UseAuthorization();
 

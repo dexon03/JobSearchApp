@@ -16,13 +16,15 @@ public static class DependencyInjection
         builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddCore(builder.Configuration);
         builder.Services.AddSignalR();
+        builder.Services.AddExceptionHandler<ExceptionHandler>();
+        builder.Services.AddProblemDetails();
 
         builder.Host.UseSerilog((context, loggerConfig) =>
             loggerConfig.ReadFrom.Configuration(context.Configuration));
 
         builder.Services.AddSignalR();
         builder.Services.AddCors(opt =>
-            opt.AddDefaultPolicy(c => c.AllowAnyMethod().AllowAnyOrigin().AllowAnyHeader().AllowCredentials()));
+            opt.AddDefaultPolicy(c => c.AllowAnyMethod().AllowAnyOrigin().AllowAnyHeader()));
 
         return builder;
     }

@@ -11,7 +11,7 @@ export const candidateApi = createApi({
     endpoints: (builder) => ({
         getCandidatesProfile: builder.query<CandidateProfile[], CandidateFilter>({
             query: (filter: CandidateFilter) => ({
-                url: `/profile/getCandidatesProfile?`,
+                url: `/profile/candidates`,
                 method: 'get',
                 params: filter
             })
