@@ -6,16 +6,17 @@ using Role = JobSearchApp.Data.Enums.Role;
 
 namespace JobSearchApp.Api.Endpoints;
 
-public static class UserEndpoints
+public static class UsersEndpoints
 {
     public static void Register(RouteGroupBuilder group)
     {
-        var userGroup = group.MapGroup("/user").RequireAuthorization(Role.Admin.ToString());
+        var userGroup = group.MapGroup("/users").RequireAuthorization(Role.Admin.ToString());
 
-        userGroup.MapGet("/", async (int pageNumber, int pageSize, UserManager<User> userManager) =>
+        userGroup.MapGet("/", async (int page, int pageSize, UserManager<User> userManager) =>
             {
-                var users = userManager.Users
-                    .Skip((pageNumber - 1) * pageSize)
+                var users = await userManager.Users
+                    .OrderBy(x => x.Id)
+                    .Skip((page - 1) * pageSize)
                     .Take(pageSize)
                     .Select(u => new UserDto
                     {
@@ -29,7 +30,7 @@ public static class UserEndpoints
                             u.UserRole.First().Role.Name == "Candidate" ? Role.Candidate :
                             null
                     })
-                    .ToList();
+                    .ToListAsync();
 
                 return Results.Ok(users);
             })

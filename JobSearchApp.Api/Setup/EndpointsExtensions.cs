@@ -18,6 +18,6 @@ public static class EndpointsExtensions
         CategoryEndpoints.Register(endpoints);
         StatisticEndpoints.Register(endpoints);
         VacancyEndpoints.Register(endpoints);
-        UserEndpoints.Register(endpoints);
+        UsersEndpoints.Register(endpoints);
     } 
 }

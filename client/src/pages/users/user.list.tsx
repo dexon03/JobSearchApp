@@ -6,8 +6,8 @@ import { useState } from "react";
 export function UserList() {
     const [page, setPage] = useState(1);
     const pageSize = 10;
-    const { data, isLoading, refetch } = useGetUsersQuery({ page, pageSize });
-    const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
+    const { data, refetch } = useGetUsersQuery({ page, pageSize });
+    const [deleteUser] = useDeleteUserMutation();
     const navigate = useNavigate();
 
     const handleEdit = (userId: string) => {
@@ -23,9 +23,6 @@ export function UserList() {
         setPage(value);
     };
 
-    if (isLoading) {
-        return <div>Loading...</div>;
-    }
 
     return (
         <>
@@ -60,8 +57,8 @@ export function UserList() {
                     </TableBody>
                 </Table>
             </TableContainer>
-            <Pagination 
-                count={Math.ceil((data?.totalCount ?? 0) / pageSize)} 
+            <Pagination
+                count={Math.ceil((data?.totalCount ?? 1z) / pageSize)}
                 page={page}
                 onChange={handlePageChange}
                 sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}
