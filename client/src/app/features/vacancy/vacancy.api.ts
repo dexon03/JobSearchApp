@@ -16,34 +16,22 @@ import { VacancyGet } from '../../../models/vacancy/vacany.get.dto';
 export const vacancyApi = createApi({
     reducerPath: 'vacancyApi',
     tagTypes: ['VacancyAll', 'RecruiterVacancy', 'Statistic'],
-    baseQuery: axiosBaseQuery({ baseUrl: environment.apiUrl}),
+    baseQuery: axiosBaseQuery({ baseUrl: environment.apiUrl }),
     keepUnusedDataFor: 5,
     endpoints: (builder) => ({
         getVacancies: builder.query<VacancyGetAll[], VacancyFilter>({
             query: (filter: VacancyFilter) => ({
-                url: '/vacancy?' + 'searchTerm='
-                    + filter.searchTerm
-                    + '&page=' + filter.page
-                    + '&pageSize=' + filter.pageSize
-                    + '&experience=' + (!filter.experience && filter.experience !== 0 ? '' : filter.experience)
-                    + '&attendanceMode=' + (!filter.attendanceMode && filter.attendanceMode != 0 ? '' : filter.attendanceMode)
-                    + '&skill=' + filter.skill + '&category=' + filter.category + '&location=' + filter.location,
-                method: 'get'
+                url: '/vacancy',
+                method: 'get',
+                params: filter
             }),
             providesTags: ['VacancyAll']
         }),
         getRecruiterVacancies: builder.query<VacancyGetAll[], { recruiterId: string, filter: VacancyFilter }>({
             query: (filter: { recruiterId: string, filter: VacancyFilter }) => ({
-                url: '/vacancy/getRecruiterVacancies/' + filter.recruiterId + '?'
-                    + 'searchTerm=' + filter.filter.searchTerm
-                    + '&page=' + filter.filter.page
-                    + '&pageSize=' + filter.filter.pageSize
-                    + '&experience=' + (!filter.filter.experience && filter.filter.experience != 0 ? '' : filter.filter.experience)
-                    + '&attendanceMode=' + (!filter.filter.attendanceMode && filter.filter.attendanceMode != 0 ? '' : filter.filter.attendanceMode)
-                    + '&skill=' + filter.filter.skill
-                    + '&category=' + filter.filter.category
-                    + '&location=' + filter.filter.location,
-                method: 'get'
+                url: '/vacancy/getRecruiterVacancies/' + filter.recruiterId,
+                method: 'get',
+                params: filter
             }),
             providesTags: ['RecruiterVacancy']
         }),

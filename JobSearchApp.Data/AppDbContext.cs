@@ -3,13 +3,15 @@ using JobSearchApp.Data.Models.Chats;
 using JobSearchApp.Data.Models.Common;
 using JobSearchApp.Data.Models.Profiles;
 using JobSearchApp.Data.Models.Vacancies;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace JobSearchApp.Data;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options)
-    : IdentityDbContext<User, Role, int>(options)
+    : IdentityDbContext<User, Role, int, IdentityUserClaim<int>, AspNetUserRole, IdentityUserLogin<int>,
+        IdentityRoleClaim<int>, IdentityUserToken<int>>(options)
 {
     public DbSet<Vacancy> Vacancies { get; set; }
     public DbSet<Location> Locations { get; set; }

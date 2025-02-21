@@ -24,7 +24,7 @@ export function VacancyPage() {
     const handleSendMessage = async () => {
         if (!message) return;
 
-        const recruiter = await getRecruiter(vacancy?.recruiterId);
+        const recruiter = await getRecruiter(vacancy.recruiterId);
         const currentPageUrl = window.location.href;
         const messageToSend = message + `\n\n${currentPageUrl}`;
         if (candidate && !recruiter.isError) {

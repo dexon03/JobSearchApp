@@ -17,5 +17,7 @@ public static class EndpointsExtensions
         SkillsEndpoints.Register(endpoints);
         CategoryEndpoints.Register(endpoints);
         StatisticEndpoints.Register(endpoints);
+        VacancyEndpoints.Register(endpoints);
+        UserEndpoints.Register(endpoints);
     } 
 }

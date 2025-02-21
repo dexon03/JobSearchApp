@@ -251,7 +251,7 @@ const CandidateProfileComponent = ({ id }: { id: string }) => {
             }}
           >
             {Object.values(Experience).filter((v) => isNaN(Number(v))).map((value) => (
-              <MenuItem key={value} value={Experience[value]}>
+              <MenuItem key={value} value={Experience[value as keyof typeof Experience]}>
                 {value}
               </MenuItem>
             ))}

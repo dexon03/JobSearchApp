@@ -1,5 +1,6 @@
 using JobSearchApp.Core.Contracts.Vacancies;
 using JobSearchApp.Core.Models.Vacancies;
+using Microsoft.AspNetCore.Mvc;
 
 namespace JobSearchApp.Api.Endpoints;
 
@@ -11,7 +12,7 @@ public static class VacancyEndpoints
     {
         var vacancyGroup = group.MapGroup("/vacancy");
 
-        vacancyGroup.MapGet("/{id}", async (int id, IVacancyService vacanciesService) =>
+        vacancyGroup.MapGet("/{id}", async (int id, [FromServices]IVacancyService vacanciesService) =>
         {
             var vacancy = await vacanciesService.GetVacancyById(id);
             return Results.Ok(vacancy);
@@ -19,14 +20,14 @@ public static class VacancyEndpoints
         .WithName("GetVacancyById")
         .WithOpenApi();
 
-        vacancyGroup.MapGet("", async ([AsParameters]VacancyFilterParameters vacancyFilter, IVacancyService vacanciesService) =>
+        vacancyGroup.MapGet("", async ([AsParameters]VacancyFilterParameters vacancyFilter, [FromServices]IVacancyService vacanciesService) =>
         {
             return Results.Ok(await vacanciesService.GetAllVacancies(vacancyFilter));
         })
         .WithName("GetVacancies")
         .WithOpenApi();
 
-        vacancyGroup.MapGet("/recruiterVacancies/{recruiterId}", async (int recruiterId, VacancyFilterParameters vacancyFilter, IVacancyService vacanciesService) =>
+        vacancyGroup.MapGet("/recruiterVacancies/{recruiterId}", async (int recruiterId, [AsParameters]VacancyFilterParameters vacancyFilter, [FromServices]IVacancyService vacanciesService) =>
         {
             return Results.Ok(await vacanciesService.GetVacanciesByRecruiterId(recruiterId, vacancyFilter));
         })
