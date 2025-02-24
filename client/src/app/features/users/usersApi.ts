@@ -3,14 +3,15 @@ import { axiosBaseQuery } from "../../../api/axios.baseQuery";
 import { environment } from "../../../environment/environment";
 import { UserDto } from "../../../models/users/user.dto";
 import { UserUpdate } from "../../../models/users/user.update.dto";
+import { UsersResponse } from "../../../models/users/users.response";
 
 export const usersApi = createApi({
     reducerPath: 'usersApi',
-    baseQuery: axiosBaseQuery({ baseUrl: environment.apiUrl}),
+    baseQuery: axiosBaseQuery({ baseUrl: environment.apiUrl }),
     tagTypes: ['Users'],
     endpoints: (builder) => ({
-        getUsers: builder.query<{items: UserDto[], totalCount: number}, {page: number, pageSize: number}>({
-            query: ({page, pageSize}) => ({
+        getUsers: builder.query<UsersResponse, { page: number, pageSize: number }>({
+            query: ({ page, pageSize }) => ({
                 url: `/users`,
                 method: 'get',
                 params: {

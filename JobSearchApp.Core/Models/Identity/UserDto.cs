@@ -1,4 +1,4 @@
-using JobSearchApp.Data.Enums;
+using Role = JobSearchApp.Data.Models.Role;
 
 namespace JobSearchApp.Core.Models.Identity;
 

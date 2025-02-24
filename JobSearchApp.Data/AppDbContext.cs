@@ -36,6 +36,17 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 
         SeedIdentityModels(builder);
         SeedVacanciesModels(builder);
+
+        builder.Entity<AspNetUserRole>(x =>
+        {
+            x.HasOne(t => t.Role)
+                .WithMany(t => t.UserRole)
+                .HasForeignKey(t => t.RoleId);
+
+            x.HasOne<User>()
+                .WithMany(t => t.UserRoles)
+                .HasForeignKey(t => t.UserId);
+        });
         
         builder.Entity<ProfileSkills>().HasKey(ps => new { ps.SkillId, ps.ProfileId });
         builder.Entity<LocationProfile>().HasKey(lp => new { lp.LocationId, lp.ProfileId });

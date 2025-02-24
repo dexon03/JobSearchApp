@@ -25,24 +25,25 @@ public static class UsersEndpoints
                         FirstName = u.FirstName,
                         LastName = u.LastName,
                         PhoneNumber = u.PhoneNumber,
-                        Role = u.UserRole.First().Role.Name == "Admin" ? Role.Admin :
-                            u.UserRole.First().Role.Name == "Recruiter" ? Role.Recruiter :
-                            u.UserRole.First().Role.Name == "Candidate" ? Role.Candidate :
-                            null
+                        Role = u.UserRoles.First().Role
                     })
                     .ToListAsync();
+                var totalCount = await userManager.Users.CountAsync();
 
-                return Results.Ok(users);
+                return Results.Ok(new UsersResponse
+                {
+                    Items = users.ToArray(),
+                    TotalCount = totalCount
+                });
             })
             .WithName("GetUsers")
             .WithOpenApi();
 
-        userGroup.MapGet("/{id}", async (int id, UserManager<User> userManager) =>
+        userGroup.MapGet("/{id}", async (int id, UserManager<User> userManager)=>
             {
                 var user = await userManager.FindByIdAsync(id.ToString());
                 if (user is null) return Results.NotFound();
 
-                var claims = await userManager.GetClaimsAsync(user);
                 var result = new UserDto
                 {
                     Id = user.Id,
@@ -50,13 +51,7 @@ public static class UsersEndpoints
                     FirstName = user.FirstName,
                     LastName = user.LastName,
                     PhoneNumber = user.PhoneNumber,
-                    Role = claims.FirstOrDefault(c => c.Type == "Role")?.Value switch
-                    {
-                        "Admin" => Role.Admin,
-                        "Recruiter" => Role.Recruiter,
-                        "Candidate" => Role.Candidate,
-                        _ => null
-                    }
+                    Role =  user.UserRoles.First().Role
                 };
 
                 return Results.Ok(result);

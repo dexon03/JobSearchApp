@@ -1,12 +1,12 @@
 import { TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Button, Pagination } from "@mui/material";
 import { useDeleteUserMutation, useGetUsersQuery } from "../../app/features/users/usersApi";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function UserList() {
     const [page, setPage] = useState(1);
     const pageSize = 10;
-    const { data, refetch } = useGetUsersQuery({ page, pageSize });
+    const { data, refetch, isLoading, error } = useGetUsersQuery({ page, pageSize });
     const [deleteUser] = useDeleteUserMutation();
     const navigate = useNavigate();
 
@@ -23,6 +23,8 @@ export function UserList() {
         setPage(value);
     };
 
+    if (isLoading) return <div>Loading...</div>;
+    if (error) return <div>Error loading users</div>;
 
     return (
         <>
@@ -38,27 +40,30 @@ export function UserList() {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {data?.items?.map((user) => (
-                            <TableRow key={user.id}>
-                                <TableCell>{user.firstName}</TableCell>
-                                <TableCell>{user.lastName}</TableCell>
-                                <TableCell>{user.email}</TableCell>
-                                <TableCell>{user.role.name}</TableCell>
-                                <TableCell align="center">
-                                    <Button variant="contained" color="primary" onClick={() => handleEdit(user.id)}>
-                                        Edit
-                                    </Button>{' '}
-                                    <Button variant="contained" color="error" onClick={() => handleDelete(user.id)}>
-                                        Delete
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
-                        ))}
+                        {data && data?.items.map((user) => {
+                            console.log(user);
+                            return (
+                                <TableRow key={user.id}>
+                                    <TableCell>{user.firstName}</TableCell>
+                                    <TableCell>{user.lastName}</TableCell>
+                                    <TableCell>{user.email}</TableCell>
+                                    <TableCell>{user.role?.name}</TableCell>
+                                    <TableCell align="center">
+                                        <Button variant="contained" color="primary" onClick={() => handleEdit(user.id)}>
+                                            Edit
+                                        </Button>{' '}
+                                        <Button variant="contained" color="error" onClick={() => handleDelete(user.id)}>
+                                            Delete
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            )
+                        })}
                     </TableBody>
                 </Table>
             </TableContainer>
             <Pagination
-                count={Math.ceil((data?.totalCount ?? 1z) / pageSize)}
+                count={Math.ceil((data?.totalCount ?? 1) / pageSize)}
                 page={page}
                 onChange={handlePageChange}
                 sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}
