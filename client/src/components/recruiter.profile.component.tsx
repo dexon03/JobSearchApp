@@ -6,8 +6,8 @@ import { Company } from '../models/common/company.models';
 import { useAppDispatch } from '../hooks/redux.hooks';
 import { setRecruiterProfile } from '../app/slices/profile.slice';
 
-const RecruiterProfileComponent = ({ id }: { id: string }) => {
-  const { data: profile, isLoading, refetch } = useGetUserRecruiterProfileQuery(id);
+const RecruiterProfileComponent = () => {
+  const { data: profile, isLoading, refetch } = useGetUserRecruiterProfileQuery();
   const [getCompanyQuery, { data: companies }] = useLazyGetProfileCompaniesQuery();
   const [updateCandidateProfile, { error: updateError }] = useUpdateRecruiterProfileMutation();
   const [updateCompany] = useUpdateCompanyMutation();

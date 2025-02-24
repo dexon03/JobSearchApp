@@ -1,4 +1,4 @@
-import { Avatar, Box, Button, Checkbox, Container, FormControlLabel, InputLabel, MenuItem, OutlinedInput, Select, TextField, Typography } from '@mui/material';
+import { Avatar, Box, Button, Container, InputLabel, MenuItem, OutlinedInput, Select, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { Document, Page } from 'react-pdf';
 import { Input } from "reactstrap";
@@ -27,11 +27,11 @@ interface CandidateProfileState {
   selectedSkills: string[];
 }
 
-const CandidateProfileComponent = ({ id }: { id: string }) => {
-  const { data: profile, isError, isLoading, error } = useGetUserCandidateProfileQuery(id);
+const CandidateProfileComponent = () => {
+  const { data: profile } = useGetUserCandidateProfileQuery();
   const [getProfileSKills, { data: skills }] = useLazyGetProfileSkillsQuery();
   const [getProfileLocations, { data: locations }] = useLazyGetProfileLocationQuery();
-  const { refetch } = useQuerySubscriptionCandidate(id);
+  const { refetch } = useQuerySubscriptionCandidate();
   const [updateCandidateProfile, { data: updatedProfile, error: updateError }] = useUpdateCandidateProfileMutation();
   const [uploadResume] = useUploadResumeMutation();
   const [downloadResume] = useLazyDownloadResumeQuery();
@@ -86,14 +86,6 @@ const CandidateProfileComponent = ({ id }: { id: string }) => {
       dispatch(setCandidateProfile(profile));
     }
   }, [dispatch, downloadResume, getProfileLocations, getProfileSKills, profile]);
-
-  if (isLoading) {
-    return <p>Loading...</p>;
-  }
-
-  if (isError) {
-    return <p>Error: {JSON.stringify(error.data)}</p>;
-  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     console.log(profileState.workExperience);
@@ -299,30 +291,7 @@ const CandidateProfileComponent = ({ id }: { id: string }) => {
               </MenuItem>
             ))}
           </Select>
-          <TextField
-            label="GitHub URL"
-            margin="normal"
-            fullWidth
-            value={profileState.gitHubUrl}
-            onChange={handleInputChange('gitHubUrl')}
-          />
-          <TextField
-            label="LinkedIn URL"
-            margin="normal"
-            fullWidth
-            value={profileState.linkedInUrl}
-            onChange={handleInputChange('linkedInUrl')}
-          />
-          <FormControlLabel
-            control={<Checkbox color="primary" />}
-            label="Active"
-            value={profileState.isActive}
-            onChange={(e) => setProfileState(prev => ({
-              ...prev,
-              isActive: e.target.checked
-            }))}
-          />
-          <Button type="submit" fullWidth variant="contained" color="primary">
+          <Button type="submit" className='mt-3' fullWidth variant="contained" color="primary">
             Save
           </Button>
           <Box marginTop={'2em'}>

@@ -1,15 +1,16 @@
-import useToken from '../../hooks/useToken';
-import { Role } from '../../models/common/role.enum';
 import CandidateProfileComponent from '../../components/candidate.profile.component';
 import RecruiterProfileComponent from '../../components/recruiter.profile.component';
+import useRole from '../../hooks/useRole';
+import { Role } from '../../models/common/role.enum';
 
 const ProfilePage = () => {
-  const { token, setToken } = useToken();
+
+  const { role } = useRole()
 
   return (
-    token?.role == Role[Role.Candidate]
-      ? <CandidateProfileComponent id={token.userId} />
-      : <RecruiterProfileComponent id={token!.userId} />
+    role === Role[Role.Candidate]
+      ? <CandidateProfileComponent />
+      : <RecruiterProfileComponent />
   );
 };
 

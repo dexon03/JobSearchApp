@@ -17,6 +17,6 @@ public interface IProfileService
     Task UploadResume(ResumeUploadDto resumeDto);
     Task<byte[]?> DownloadResume(int candidateId);
     Task DeleteProfile<T>(int id) where T : Profile<T>;
-    Task DeleteProfileByUserId<T>(int userId) where T : Profile<T>;
+    Task DeleteProfileByUserId(int userId);
     Task ActivateDeactivateProfile<T>(int id) where T : Profile<T>;
 }

@@ -350,16 +350,19 @@ public class ProfileService(
         await db.SaveChangesAsync();
     }
 
-    public async Task DeleteProfileByUserId<T>(int userId) where T : Profile<T>
+    public async Task DeleteProfileByUserId(int userId)
     {
-        var profile = db.Set<T>().FirstOrDefault(p => p.UserId == userId);
-        if (profile is not null)
+        var candidateProfile = await db.CandidateProfile.FirstOrDefaultAsync(cp => cp.UserId == userId);
+        if (candidateProfile != null)
         {
-            db.Set<T>().Remove(profile);
-            await db.SaveChangesAsync();
-            if (typeof(T) == typeof(CandidateProfile))
+            db.CandidateProfile.Remove(candidateProfile);
+        }
+        else
+        {
+            var recruiterProfile = await db.RecruiterProfile.FirstOrDefaultAsync(rp => rp.UserId == userId);
+            if (recruiterProfile != null)
             {
-                await pdfService.DeletePdf((profile as CandidateProfile)!);
+                db.RecruiterProfile.Remove(recruiterProfile);
             }
         }
     }

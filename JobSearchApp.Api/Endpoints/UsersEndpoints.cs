@@ -1,5 +1,7 @@
+using JobSearchApp.Core.MessageContracts;
 using JobSearchApp.Core.Models.Identity;
 using JobSearchApp.Data.Models;
+using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Role = JobSearchApp.Data.Enums.Role;
@@ -83,10 +85,15 @@ public static class UsersEndpoints
             .WithName("UpdateUser")
             .WithOpenApi();
 
-        userGroup.MapDelete("/{id}", async (int id, UserManager<User> userManager) =>
+        userGroup.MapDelete("/{id}", async (int id, UserManager<User> userManager, IPublishEndpoint publishEndpoint) =>
             {
                 var user = await userManager.FindByIdAsync(id.ToString());
                 if (user is null) return Results.NotFound();
+
+                await publishEndpoint.Publish<UserDeletedEvent>(new
+                {
+                    UserId = id
+                });
 
                 await userManager.DeleteAsync(user);
                 return Results.Ok();

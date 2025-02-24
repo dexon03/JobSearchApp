@@ -63,7 +63,6 @@ export function CandidateList() {
                         label="Attendance"
                         value={filterAttendance}
                         onChange={(e) => {
-                            debugger;
                             setFilterAttendance(Number(e.target.value))
                         }}
                         labelId="attendance-label"

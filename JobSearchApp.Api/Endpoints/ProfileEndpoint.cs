@@ -57,13 +57,14 @@ public static class ProfileEndpoints
             .WithName("UpdateCandidateProfile")
             .WithOpenApi();
 
-        profileGroup.MapPut("/uploadResume", async (ResumeUploadDto resume, IProfileService profileService) =>
+        profileGroup.MapPut("/uploadResume", async ([FromForm]ResumeUploadDto resume, IProfileService profileService) =>
             {
                 await profileService.UploadResume(resume);
                 return Results.Ok();
             })
             .WithName("UploadResume")
-            .WithOpenApi();
+            .WithOpenApi()
+            .DisableAntiforgery();
 
         profileGroup.MapGet("/downloadResume/{profileId}", async (int profileId, IProfileService profileService) =>
             {

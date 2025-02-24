@@ -23,14 +23,14 @@ export const usersApi = createApi({
         }),
         getUser: builder.query<UserDto, string>({
             query: (id: string) => ({
-                url: `/user/${id}`,
+                url: `/users/${id}`,
                 method: 'get'
             }),
             providesTags: ['Users']
         }),
         updateUser: builder.mutation<UserDto, UserUpdate>({
             query: (body: UserUpdate) => ({
-                url: `/user`,
+                url: `/users`,
                 method: 'put',
                 data: body
             }),
@@ -38,7 +38,7 @@ export const usersApi = createApi({
         }),
         deleteUser: builder.mutation<void, string>({
             query: (id: string) => ({
-                url: `/user/${id}`,
+                url: `/users/${id}`,
                 method: 'delete'
             }),
             invalidatesTags: ['Users']

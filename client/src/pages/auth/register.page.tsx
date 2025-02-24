@@ -4,27 +4,20 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
 import { RestClient } from '../../api/rest.client';
-import { setCandidateProfile, setRecruiterProfile } from '../../app/slices/profile.slice';
-import { useAppDispatch } from '../../hooks/redux.hooks';
-import useToken from '../../hooks/useToken';
 import { TokenResponse } from '../../models/auth/jwt.respone';
 import { RegisterModel } from '../../models/auth/register.model';
 import { Role } from '../../models/common/role.enum';
-import useRole from '../../hooks/useRole';
 
 function RegisterPage() {
     const [selectedRole, setSelectedRole] = useState(0);
-    const { setToken } = useToken();
-    const { setRole } = useRole();
     const navigate = useNavigate();
     const restClient = new RestClient();
-    const dispatch = useAppDispatch();
     const handleRoleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSelectedRole(parseInt(event.target.value));
     };
 
     const onSubmit = async (values) => {
-        const token = await restClient.post<TokenResponse>('/identity/register', {
+        await restClient.post<TokenResponse>('/account/register', {
             email: values.email,
             password: values.password,
             firstName: values.firstName,
@@ -33,20 +26,7 @@ function RegisterPage() {
             role: selectedRole === 0 ? Role.Recruiter : Role.Candidate,
         } as RegisterModel);
 
-        setToken(token);
-        const role: string = await restClient.get(`/role`);
-        setRole(role);
-
-
-        if (role === Role[Role.Candidate]) {
-            dispatch(setCandidateProfile(await restClient.get(`/profile/${Role.Candidate}`)));
-            navigate('/vacancy');
-        } else if (role === Role[Role.Recruiter]) {
-            dispatch(setRecruiterProfile(await restClient.get(`/profile/${Role.Recruiter}`)));
-            navigate('/candidate');
-        } else {
-            navigate('/users')
-        }
+        navigate("/login")
     }
 
     const validationSchema = Yup.object().shape({

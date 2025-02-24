@@ -12,16 +12,16 @@ export const profileApi = createApi({
     baseQuery: axiosBaseQuery({ baseUrl: environment.apiUrl }),
     tagTypes: ['CandidateProfile', 'RecruiterProfile', 'PdfResume'],
     endpoints: (builder) => ({
-        getUserCandidateProfile: builder.query<CandidateProfile, string>({
-            query: (userId: string) => ({
-                url: `/profile/${Role.Candidate}/${userId}`,
+        getUserCandidateProfile: builder.query<CandidateProfile, void>({
+            query: () => ({
+                url: `/profile/${Role.Candidate}`,
                 method: 'get'
             }),
             providesTags: ['CandidateProfile']
         }),
-        getUserRecruiterProfile: builder.query<RecruiterProfile, string>({
-            query: (userId: string) => ({
-                url: `/profile/${Role.Recruiter}/${userId}`,
+        getUserRecruiterProfile: builder.query<RecruiterProfile, void>({
+            query: () => ({
+                url: `/profile/${Role.Recruiter}`,
                 method: 'get'
             }),
             providesTags: ['RecruiterProfile']

@@ -38,6 +38,7 @@ public static class DependencyInjection
 
                 configurator.ConfigureEndpoints(context);
             });
+            x.AddConsumers(assembly);
         });
 
         services.AddFusionCache()
