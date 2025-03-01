@@ -12,7 +12,6 @@ export default function ChatList() {
     const pageSize = 10; // or any number you prefer
     const { token } = useToken();
     const { data, isLoading } = useGetChatListQuery({
-        userId: token?.userId ?? 'skip',
         page,
         pageSize
     });

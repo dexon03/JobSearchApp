@@ -4,7 +4,7 @@ using JobSearchApp.Data.Models.Profiles;
 
 namespace JobSearchApp.Core.Models.Profiles;
 
-public class GetCandidateProfileDto : ProfileDto<CandidateProfile>
+public class GetCandidateProfileDto
 {
     public int Id { get; set; }
     public string Name { get; set; }

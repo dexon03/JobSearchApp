@@ -26,27 +26,26 @@ public class ChatService(
             {
                 _logger.Information("Cache miss for {CacheKey}. Fetching from database...", cacheKey);
 
-                var lastMessages = db.Messages
-                    .Where(m => m.ReceiverId == userId || m.SenderId == userId)
-                    .GroupBy(m => m.ChatId)
-                    .Select(g => new
-                    {
-                        ChatId = g.Key,
-                        LastMessage = g.OrderByDescending(m => m.TimeStamp).First()
-                    });
+                // var lastMessages = db.Messages
+                //     .Where(m => m.ReceiverId == userId || m.SenderId == userId)
+                //     .GroupBy(m => m.ChatId)
+                //     .Select(g => new
+                //     {
+                //         ChatId = g.Key,
+                //         LastMessage = g.OrderByDescending(m => m.TimeStamp).First()
+                //     });
 
                 var chats = await db.Chats
                     .Where(c => db.Messages
                         .Any(m => (m.ReceiverId == userId || m.SenderId == userId) && m.ChatId == c.Id))
-                    .OrderByDescending(c => lastMessages.FirstOrDefault(lm => lm.ChatId == c.Id)!.LastMessage.TimeStamp)
+                    .OrderByDescending(c => c.Messages.OrderByDescending(m => m.TimeStamp).FirstOrDefault()!.TimeStamp)
                     .Select(c => new ChatDto
                     {
                         Id = c.Id,
                         Name = c.Name,
-                        SenderOfLastMessage = lastMessages.FirstOrDefault(lm => lm.ChatId == c.Id)!.LastMessage.Sender
-                            .UserName!,
-                        LastMessage = lastMessages.FirstOrDefault(lm => lm.ChatId == c.Id)!.LastMessage.Content,
-                        IsLastMessageRead = lastMessages.FirstOrDefault(lm => lm.ChatId == c.Id)!.LastMessage.IsRead
+                        SenderOfLastMessage = c.Messages.OrderByDescending(m => m.TimeStamp).FirstOrDefault()!.Sender.UserName,
+                        LastMessage = c.Messages.OrderByDescending(m => m.TimeStamp).FirstOrDefault()!.Content,
+                        IsLastMessageRead = c.Messages.OrderByDescending(m => m.TimeStamp).FirstOrDefault()!.IsRead
                     })
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)

@@ -11,12 +11,11 @@ export const chatApi = createApi({
     baseQuery: axiosBaseQuery({ baseUrl: environment.apiUrl }),
     tagTypes: ['ChatList', 'ChatMessages'],
     endpoints: (builder) => ({
-        getChatList: builder.query<{ items: ChatDto[], totalCount: number }, { userId: string, page: number, pageSize: number }>({
-            query: ({ userId, page, pageSize }) => ({
+        getChatList: builder.query<{ items: ChatDto[], totalCount: number }, { page: number, pageSize: number }>({
+            query: ({ page, pageSize }) => ({
                 url: `/chat/list`,
                 method: 'get',
                 params: {
-                    userId,
                     page,
                     pageSize
                 }

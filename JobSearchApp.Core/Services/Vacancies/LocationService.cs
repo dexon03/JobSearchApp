@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using JobSearchApp.Core.Contracts.Vacancies;
 using JobSearchApp.Core.Models.Vacancies;
 using JobSearchApp.Data;
@@ -14,7 +15,7 @@ public class LocationService(AppDbContext db, IMapper mapper, IFusionCache hybri
 {
     private readonly ILogger _log = logger.ForContext<LocationService>();
 
-    public async Task<List<Location>> GetAllLocations()
+    public async Task<List<LocationDto>> GetAllLocations()
     {
         var cacheKey = "all_locations";
         var cacheTag = "locations";
@@ -24,7 +25,8 @@ public class LocationService(AppDbContext db, IMapper mapper, IFusionCache hybri
             async ctx =>
             {
                 _log.Information("Cache miss for {CacheKey}. Fetching all locations from DB...", cacheKey);
-                var locations = await db.Locations.ToListAsync(ctx);
+                var locations = await db.Locations.ProjectTo<LocationDto>(mapper.ConfigurationProvider)
+                    .ToListAsync(ctx);
                 _log.Information("Fetched {Count} locations from DB.", locations.Count);
                 return locations;
             },
@@ -32,7 +34,7 @@ public class LocationService(AppDbContext db, IMapper mapper, IFusionCache hybri
         );
     }
 
-    public async Task<Location> GetLocationById(int id)
+    public async Task<LocationDto> GetLocationById(int id)
     {
         var cacheKey = $"location_{id}";
 
@@ -41,20 +43,22 @@ public class LocationService(AppDbContext db, IMapper mapper, IFusionCache hybri
             async ctx =>
             {
                 _log.Information("Cache miss for {CacheKey}. Fetching location {LocationId} from DB...", cacheKey, id);
-                var location = await db.Locations.FindAsync(new object[] { id }, ctx);
+                var location = await db.Locations.FindAsync(id, ctx);
                 if (location == null)
                 {
                     _log.Warning("Location {LocationId} not found.", id);
                     throw new Exception("Location not found");
                 }
 
-                return location;
+                var locationDto = mapper.Map<LocationDto>(location);
+
+                return locationDto;
             },
             tags: [$"location_{id}"]
         );
     }
 
-    public async Task<Location> CreateLocation(LocationCreateDto location)
+    public async Task<LocationDto> CreateLocation(LocationCreateDto location)
     {
         var locationEntity = mapper.Map<Location>(location);
         var isExists = await db.Locations
@@ -70,10 +74,13 @@ public class LocationService(AppDbContext db, IMapper mapper, IFusionCache hybri
 
         await hybridCache.RemoveByTagAsync("locations");
         _log.Information("New location {City}, {Country} created. Cache invalidated.", location.City, location.Country);
-        return result.Entity;
+
+        var locationDto = mapper.Map<LocationDto>(result.Entity);
+
+        return locationDto;
     }
 
-    public async Task<Location> UpdateLocation(LocationUpdateDto location)
+    public async Task<LocationDto> UpdateLocation(LocationUpdateDto location)
     {
         var locationEntity = mapper.Map<Location>(location);
         var isExists = await db.Locations.AnyAsync(x => x.Id == location.Id);
@@ -90,7 +97,10 @@ public class LocationService(AppDbContext db, IMapper mapper, IFusionCache hybri
         await hybridCache.RemoveByTagAsync("locations");
 
         _log.Information("Location {LocationId} updated. Cache invalidated.", locationEntity.Id);
-        return result.Entity;
+
+        var locationDto = mapper.Map<LocationDto>(result.Entity);
+
+        return locationDto;
     }
 
     public async Task DeleteLocation(int id)

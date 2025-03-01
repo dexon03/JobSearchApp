@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using JobSearchApp.Core.Contracts.Vacancies;
 using JobSearchApp.Core.Models.Vacancies;
 using JobSearchApp.Data;
@@ -13,7 +14,7 @@ public class SkillService(AppDbContext db, IMapper mapper, IFusionCache hybridCa
 {
     private readonly ILogger _log = logger.ForContext<SkillService>();
 
-    public async Task<List<Skill>> GetAllSkills()
+    public async Task<List<SkillDto>> GetAllSkills()
     {
         var cacheKey = "all_skills";
         var cacheTag = "skills";
@@ -23,7 +24,7 @@ public class SkillService(AppDbContext db, IMapper mapper, IFusionCache hybridCa
             async ctx =>
             {
                 _log.Information("Cache miss for {CacheKey}. Fetching all skills from DB...", cacheKey);
-                var skills = await db.Skills.ToListAsync(ctx);
+                var skills = await db.Skills.ProjectTo<SkillDto>(mapper.ConfigurationProvider).ToListAsync(ctx);
                 _log.Information("Fetched {Count} skills from DB.", skills.Count);
                 return skills;
             },
@@ -31,7 +32,7 @@ public class SkillService(AppDbContext db, IMapper mapper, IFusionCache hybridCa
         );
     }
 
-    public async Task<Skill> GetSkillById(int id)
+    public async Task<SkillDto> GetSkillById(int id)
     {
         var cacheKey = $"skill_{id}";
 
@@ -40,20 +41,22 @@ public class SkillService(AppDbContext db, IMapper mapper, IFusionCache hybridCa
             async ctx =>
             {
                 _log.Information("Cache miss for {CacheKey}. Fetching skill {SkillId} from DB...", cacheKey, id);
-                var skill = await db.Skills.FindAsync(new object[] { id }, ctx);
+                var skill = await db.Skills.FindAsync(id, ctx);
                 if (skill == null)
                 {
                     _log.Warning("Skill {SkillId} not found.", id);
                     throw new Exception($"Skill with id {id} not found");
                 }
 
-                return skill;
+                var skillDto = mapper.Map<SkillDto>(skill);
+
+                return skillDto;
             },
             tags: [$"skill_{id}"]
         );
     }
 
-    public async Task<Skill> CreateSkill(SkillCreateDto skill)
+    public async Task<SkillDto> CreateSkill(SkillCreateDto skill)
     {
         var skillEntity = mapper.Map<Skill>(skill);
         var result = db.Skills.Add(skillEntity);
@@ -61,10 +64,13 @@ public class SkillService(AppDbContext db, IMapper mapper, IFusionCache hybridCa
 
         await hybridCache.RemoveByTagAsync("skills");
         _log.Information("New skill {SkillName} created. Cache invalidated.", skill.Name);
-        return result.Entity;
+
+        var skillDto = mapper.Map<SkillDto>(result.Entity);
+
+        return skillDto;
     }
 
-    public async Task<Skill> UpdateSkill(SkillUpdateDto skill)
+    public async Task<SkillDto> UpdateSkill(SkillUpdateDto skill)
     {
         var skillEntity = mapper.Map<Skill>(skill);
         var isExists = await db.Skills.AnyAsync(x => x.Id == skillEntity.Id);
@@ -81,7 +87,10 @@ public class SkillService(AppDbContext db, IMapper mapper, IFusionCache hybridCa
         await hybridCache.RemoveByTagAsync("skills");
 
         _log.Information("Skill {SkillId} updated. Cache invalidated.", skillEntity.Id);
-        return result.Entity;
+
+        var skillDto = mapper.Map<SkillDto>(result.Entity);
+
+        return skillDto;
     }
 
     public async Task DeleteSkill(int id)

@@ -1,8 +1,10 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
-USER $APP_UID
 WORKDIR /app
+USER root
+RUN mkdir -p /keys && chown -R $APP_UID:$APP_UID /keys
 EXPOSE 8080
 EXPOSE 8081
+USER $APP_UID
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
@@ -20,4 +22,5 @@ RUN dotnet publish "JobSearchApp.Api.csproj" -c $BUILD_CONFIGURATION -o /app/pub
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
 ENTRYPOINT ["dotnet", "JobSearchApp.Api.dll"]

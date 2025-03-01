@@ -1,5 +1,9 @@
+using System.Security.Claims;
 using JobSearchApp.Core.Contracts.Chats;
 using JobSearchApp.Core.Models.Chat;
+using JobSearchApp.Data.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 namespace JobSearchApp.Api.Endpoints;
 
@@ -10,13 +14,15 @@ public static class ChatEndpoints
         var chatGroup = group.MapGroup("/chat")
             .RequireAuthorization();
 
-        chatGroup.MapGet("/list", async (
-                int userId,
-                int pageNumber,
-                int pageSize,
+        chatGroup.MapGet("list", async (
+                [FromQuery]int page,
+                [FromQuery]int pageSize,
+                ClaimsPrincipal claims,
+                UserManager<User> userManager,
                 IChatService chatService) =>
             {
-                var chats = await chatService.GetChatList(userId, pageNumber, pageSize);
+                var userId = int.Parse(userManager.GetUserId(claims)!);
+                var chats = await chatService.GetChatList(userId, page, pageSize);
                 return Results.Ok(chats);
             })
             .WithName("GetChatList")

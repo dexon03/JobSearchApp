@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace JobSearchApp.Core.Models.Profiles;
 
-public class CandidateProfileUpdateDto : ProfileUpdateDto<CandidateProfile>
+public class CandidateProfileUpdateDto
 {
     public int Id { get; set; }
     public string Name { get; set; }

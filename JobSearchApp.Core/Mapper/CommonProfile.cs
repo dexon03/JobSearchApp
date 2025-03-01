@@ -17,5 +17,7 @@ public class CommonProfile : Profile
         CreateMap<LocationUpdateDto, Location>();
         CreateMap<SkillCreateDto, Skill>();
         CreateMap<SkillUpdateDto, Skill>();
+        CreateMap<Skill, SkillDto>();
+        CreateMap<Location, LocationDto>();
     }
 }

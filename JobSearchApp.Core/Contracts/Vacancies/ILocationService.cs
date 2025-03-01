@@ -5,10 +5,10 @@ namespace JobSearchApp.Core.Contracts.Vacancies;
 
 public interface ILocationService
 {
-    Task<List<Location>> GetAllLocations();
-    Task<Location> GetLocationById(int id);
-    Task<Location> CreateLocation(LocationCreateDto location);
-    Task<Location> UpdateLocation(LocationUpdateDto location);
+    Task<List<LocationDto>> GetAllLocations();
+    Task<LocationDto> GetLocationById(int id);
+    Task<LocationDto> CreateLocation(LocationCreateDto location);
+    Task<LocationDto> UpdateLocation(LocationUpdateDto location);
     Task DeleteLocation(int id);
     Task DeleteManyLocations(int[] locations);
 }

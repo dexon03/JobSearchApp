@@ -1,5 +1,6 @@
 using System.Net;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using JobSearchApp.Core.Contracts.Profiles;
 using JobSearchApp.Core.Exceptions;
 using JobSearchApp.Core.Models.Profiles;
@@ -36,35 +37,7 @@ public class ProfileService(
             .OrderBy(p => p.Id)
             .Skip((filter.Page - 1) * filter.PageSize)
             .Take(filter.PageSize)
-            .Select(profile => new GetCandidateProfileDto
-            {
-                Id = profile.Id,
-                Name = profile.Name,
-                Surname = profile.Surname,
-                Email = profile.Email ?? string.Empty,
-                PhoneNumber = profile.PhoneNumber ?? string.Empty,
-                DateBirth = profile.DateBirth,
-                Description = profile.Description ?? string.Empty,
-                ImageUrl = profile.ImageUrl ?? string.Empty,
-                PositionTitle = profile.PositionTitle ?? string.Empty,
-                IsActive = profile.IsActive,
-                WorkExperience = profile.WorkExperience,
-                DesiredSalary = profile.DesiredSalary,
-                Attendance = profile.Attendance,
-                Skills = profile.ProfileSkills
-                    .Select(ps => new SkillDto
-                    {
-                        Id = ps.Skill.Id,
-                        Name = ps.Skill.Name
-                    }),
-                Locations = profile.LocationProfiles
-                    .Select(pl => new LocationDto
-                    {
-                        Id = pl.Location.Id,
-                        City = pl.Location.City,
-                        Country = pl.Location.Country
-                    }),
-            })
+            .ProjectTo<GetCandidateProfileDto>(mapper.ConfigurationProvider)
             .ToListAsync();
 
         return profileEntities;
@@ -117,20 +90,7 @@ public class ProfileService(
             throw new ExceptionWithStatusCode("Profile not found", HttpStatusCode.BadRequest);
         }
 
-        var profile = new GetRecruiterProfileDto
-        {
-            Id = profileEntity.Id,
-            Name = profileEntity.Name,
-            Surname = profileEntity.Surname,
-            Email = profileEntity.Email ?? String.Empty,
-            PhoneNumber = profileEntity.PhoneNumber ?? String.Empty,
-            DateBirth = profileEntity.DateBirth,
-            Description = profileEntity.Description ?? String.Empty,
-            ImageUrl = profileEntity.ImageUrl ?? String.Empty,
-            PositionTitle = profileEntity.PositionTitle ?? String.Empty,
-            IsActive = profileEntity.IsActive,
-            UserId = profileEntity.UserId
-        };
+        var profile = mapper.Map<GetRecruiterProfileDto>(profileEntity);
 
         return profile;
     }
@@ -139,44 +99,7 @@ public class ProfileService(
     {
         var profileEntity = await db.CandidateProfile
             .Where(p => p.Id == profileId)
-            .Include(p => p.ProfileSkills)
-            .ThenInclude(ps => ps.Skill)
-            .Include(p => p.LocationProfiles)
-            .ThenInclude(pl => pl.Location)
-            .Select(profile => new GetCandidateProfileDto
-            {
-                Id = profile.Id,
-                Name = profile.Name,
-                Surname = profile.Surname,
-                Email = profile.Email ?? string.Empty,
-                PhoneNumber = profile.PhoneNumber ?? string.Empty,
-                DateBirth = profile.DateBirth,
-                Description = profile.Description ?? string.Empty,
-                ImageUrl = profile.ImageUrl ?? string.Empty,
-                PositionTitle = profile.PositionTitle ?? string.Empty,
-                IsActive = profile.IsActive,
-                WorkExperience = profile.WorkExperience,
-                DesiredSalary = profile.DesiredSalary,
-                Attendance = profile.Attendance,
-                UserId = profile.UserId,
-
-                Skills = profile.ProfileSkills
-                    .Select(ps => new SkillDto
-                    {
-                        Id = ps.Skill.Id,
-                        Name = ps.Skill.Name
-                    })
-                    .ToList(),
-
-                Locations = profile.LocationProfiles
-                    .Select(pl => new LocationDto
-                    {
-                        Id = pl.Location.Id,
-                        City = pl.Location.City,
-                        Country = pl.Location.Country
-                    })
-                    .ToList()
-            })
+            .ProjectTo<GetCandidateProfileDto>(mapper.ConfigurationProvider)
             .FirstOrDefaultAsync();
 
         if (profileEntity == null)
@@ -191,43 +114,7 @@ public class ProfileService(
     {
         var profileEntity = await db.CandidateProfile
             .Where(p => p.UserId == userId)
-            .Include(p => p.ProfileSkills)
-            .ThenInclude(ps => ps.Skill)
-            .Include(p => p.LocationProfiles)
-            .ThenInclude(pl => pl.Location)
-            .Select(profile => new GetCandidateProfileDto
-            {
-                Id = profile.Id,
-                Name = profile.Name,
-                Surname = profile.Surname,
-                Email = profile.Email ?? string.Empty,
-                PhoneNumber = profile.PhoneNumber ?? string.Empty,
-                DateBirth = profile.DateBirth,
-                Description = profile.Description ?? string.Empty,
-                ImageUrl = profile.ImageUrl ?? string.Empty,
-                PositionTitle = profile.PositionTitle ?? string.Empty,
-                IsActive = profile.IsActive,
-                WorkExperience = profile.WorkExperience,
-                DesiredSalary = profile.DesiredSalary,
-                Attendance = profile.Attendance,
-                UserId = userId,
-                Skills = profile.ProfileSkills
-                    .Select(ps => new SkillDto
-                    {
-                        Id = ps.Skill.Id,
-                        Name = ps.Skill.Name
-                    })
-                    .ToList(),
-
-                Locations = profile.LocationProfiles
-                    .Select(pl => new LocationDto
-                    {
-                        Id = pl.Location.Id,
-                        City = pl.Location.City,
-                        Country = pl.Location.Country
-                    })
-                    .ToList()
-            })
+            .ProjectTo<GetCandidateProfileDto>(mapper.ConfigurationProvider)
             .FirstOrDefaultAsync();
 
         if (profileEntity == null)
@@ -243,23 +130,8 @@ public class ProfileService(
         var profileEntity =
             await db.RecruiterProfile
                 .Where(rp => rp.UserId == userId)
-                .AsSplitQuery()
-                .Include(rp => rp.Company)
-                .Select(t => new GetRecruiterProfileDto
-                {
-                    Id = t.Id,
-                    Name = t.Name,
-                    Surname = t.Surname,
-                    Email = t.Email,
-                    PhoneNumber = t.PhoneNumber,
-                    DateBirth = t.DateBirth,
-                    Description = t.Description,
-                    ImageUrl = t.ImageUrl,
-                    PositionTitle = t.PositionTitle,
-                    IsActive = t.IsActive,
-                    Company = t.Company,
-                    UserId = t.UserId,
-                }).FirstOrDefaultAsync();
+                .ProjectTo<GetRecruiterProfileDto>(mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync();
 
         if (profileEntity == null)
         {
@@ -285,29 +157,46 @@ public class ProfileService(
         await db.SaveChangesAsync();
     }
 
-    public async Task<CandidateProfile> UpdateCandidateProfile(CandidateProfileUpdateDto profileDto)
+    public async Task<GetCandidateProfileDto> UpdateCandidateProfile(CandidateProfileUpdateDto profileDto)
     {
-        var profile = await GetProfile(profileDto);
+        var profile = await db.CandidateProfile.FindAsync(profileDto.Id);
+        if (profile == null)
+        {
+            throw new ExceptionWithStatusCode("Profile that you trying to update, not exist",
+                HttpStatusCode.BadRequest);
+        }
+
+        mapper.Map(profileDto, profile);
 
         if (profileDto.PdfResume is not null)
         {
             await UploadPdf(profile, profileDto.PdfResume);
         }
 
-        db.Update(profile);
+        var entityEntry = db.Update(profile);
         await db.SaveChangesAsync();
 
-        return profile;
+        var result = mapper.Map<GetCandidateProfileDto>(entityEntry.Entity);
+        return result;
     }
 
-    public async Task<RecruiterProfile> UpdateRecruiterProfile(RecruiterProfileUpdateDto profileDto)
+    public async Task<GetRecruiterProfileDto> UpdateRecruiterProfile(RecruiterProfileUpdateDto profileDto)
     {
-        var profile = await GetProfile(profileDto);
+        var profile = await db.RecruiterProfile.FindAsync(profileDto.Id);
+        if (profile == null)
+        {
+            throw new ExceptionWithStatusCode("Profile that you trying to update, not exist",
+                HttpStatusCode.BadRequest);
+        }
 
-        db.Update(profile);
+        mapper.Map(profileDto, profile);
+
+        var entity = db.Update(profile);
         await db.SaveChangesAsync();
+        
+        var result = mapper.Map<GetRecruiterProfileDto>(entity.Entity);
 
-        return profile;
+        return result;
     }
 
     public async Task UploadResume(ResumeUploadDto resumeDto)
@@ -378,19 +267,6 @@ public class ProfileService(
         profile.IsActive = !profile.IsActive;
         db.Update(profile);
         await db.SaveChangesAsync();
-    }
-
-    private async Task<T> GetProfile<T>(ProfileUpdateDto<T> profileDto) where T : Profile<T>
-    {
-        var profileEntity = await db.Set<T>().FindAsync(profileDto.Id);
-        if (profileEntity == null)
-        {
-            throw new ExceptionWithStatusCode("Profile that you trying to update, not exist",
-                HttpStatusCode.BadRequest);
-        }
-
-        mapper.Map(profileDto, profileEntity);
-        return profileEntity;
     }
 
     private async Task UploadPdf(CandidateProfile profile, IFormFile formFile)

@@ -12,8 +12,8 @@ public interface IProfileService
     Task<GetCandidateProfileDto> GetCandidateProfileByUserId(int userId);
     Task<GetRecruiterProfileDto> GetRecruiterProfileByUserId(int userId);
     Task CreateProfile(ProfileCreateDto profile);
-    Task<CandidateProfile> UpdateCandidateProfile(CandidateProfileUpdateDto profileDto);
-    Task<RecruiterProfile> UpdateRecruiterProfile(RecruiterProfileUpdateDto profileDto);
+    Task<GetCandidateProfileDto> UpdateCandidateProfile(CandidateProfileUpdateDto profileDto);
+    Task<GetRecruiterProfileDto> UpdateRecruiterProfile(RecruiterProfileUpdateDto profileDto);
     Task UploadResume(ResumeUploadDto resumeDto);
     Task<byte[]?> DownloadResume(int candidateId);
     Task DeleteProfile<T>(int id) where T : Profile<T>;

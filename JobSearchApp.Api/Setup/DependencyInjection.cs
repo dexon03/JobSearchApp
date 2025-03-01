@@ -1,6 +1,8 @@
 using JobSearchApp.Core;
 using JobSearchApp.Data;
 using JobSearchApp.Data.Models;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -55,5 +57,11 @@ public static class DependencyInjection
             options.Lockout.MaxFailedAccessAttempts = 5;
             options.Lockout.AllowedForNewUsers = true;
         });
+        
+        app.Services.AddDataProtection()
+            .PersistKeysToFileSystem(new DirectoryInfo("/keys"))
+            .SetApplicationName("JobSearchApp"); 
+
+
     }
 }

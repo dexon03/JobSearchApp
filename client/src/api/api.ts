@@ -1,11 +1,11 @@
 import axios, { AxiosError } from 'axios';
 import { showErrorToast } from "../app/features/common/popup";
 import { environment } from "../environment/environment";
+import { navigationService } from '../hooks/navigate';
 
 const api = axios.create({
     baseURL: environment.apiUrl,
 });
-
 
 api.interceptors.request.use(
     (config) => {
@@ -30,7 +30,12 @@ api.interceptors.response.use(
             try {
                 const storageToken = localStorage.getItem('token');
                 const refreshToken = storageToken ? JSON.parse(storageToken)?.refreshToken : null;
-                const response = await axios.post(environment.apiUrl + '/identity/refresh', { refreshToken })
+                const accessToken = storageToken ? JSON.parse(storageToken)?.accessToken : null;
+                const response = await axios.post(environment.apiUrl + '/identity/refresh', { refreshToken }, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`
+                    }
+                });
 
                 const token = response.data;
                 const stringToken = JSON.stringify(token);
@@ -42,7 +47,7 @@ api.interceptors.response.use(
             } catch (error: unknown) {
                 if (error instanceof AxiosError && error?.response?.status === 401) {
                     localStorage.removeItem('token');
-                    window.location.href = '/login';
+                    navigationService.navigate('/login');
                 }
                 console.log(error);
             }

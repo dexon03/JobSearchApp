@@ -3,7 +3,7 @@ using JobSearchApp.Data.Models.Profiles;
 
 namespace JobSearchApp.Core.Models.Profiles;
 
-public class GetRecruiterProfileDto : ProfileDto<RecruiterProfile>
+public class GetRecruiterProfileDto
 {
     public int Id { get; set; }
     public string Name { get; set; }
