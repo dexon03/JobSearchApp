@@ -7,7 +7,6 @@ export interface VacancyUpdateModel {
     id: string;
     categoryId: string;
     title: string;
-    positionTitle: string;
     description: string;
     salary: number;
     experience: Experience;

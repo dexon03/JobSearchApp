@@ -1,25 +1,25 @@
+import { Button, Container, InputLabel, MenuItem, OutlinedInput, Select, TextField } from "@mui/material";
+import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDeleteVacancyMutation, useGetVacancyQuery, useLazyGetVacancyCategoriesQuery, useLazyGetVacancyLocationQuery, useLazyGetVacancySkillsQuery, useUpdateVacancyMutation } from "../../app/features/vacancy/vacancy.api";
-import useToken from "../../hooks/useToken";
-import { FormEvent, useEffect, useState } from "react";
+import useRole from "../../hooks/useRole";
 import { AttendanceMode } from "../../models/common/attendance.enum";
 import { Experience } from "../../models/vacancy/experience.enum";
-import { Button, Container, InputLabel, MenuItem, OutlinedInput, Select, TextField } from "@mui/material";
 import { VacancyUpdateModel } from "../../models/vacancy/vacancy.update.dto";
+import { Role } from "../../models/common/role.enum";
 
 export function VacancyUpdatePage() {
     const { id } = useParams();
-    const { data: vacancy, isLoading, isError, error } = useGetVacancyQuery(id);
-    const [getVacancySkills, { data: skills, isError: isSkillsLoadingError }] = useLazyGetVacancySkillsQuery();
-    const [getVacancyLocations, { data: locations, isError: isErrorLoadingError }] = useLazyGetVacancyLocationQuery();
-    const [getVacancyCategories, { data: categories, isError: isCategoriesLoadingError }] = useLazyGetVacancyCategoriesQuery();
+    const { data: vacancy, isLoading } = useGetVacancyQuery(id!);
+    const [getVacancySkills, { data: skills }] = useLazyGetVacancySkillsQuery();
+    const [getVacancyLocations, { data: locations }] = useLazyGetVacancyLocationQuery();
+    const [getVacancyCategories, { data: categories }] = useLazyGetVacancyCategoriesQuery();
     const [deleteVacancy] = useDeleteVacancyMutation();
     const [updateVacancy] = useUpdateVacancyMutation();
-    const { token } = useToken();
+    const { role } = useRole();
     const navigate = useNavigate();
 
     const [title, setTitle] = useState('');
-    const [positionTitle, setPositionTitle] = useState('');
     const [description, setDescription] = useState('');
     const [salary, setSalary] = useState(0);
     const [experience, setExperience] = useState<Experience>(0);
@@ -31,7 +31,6 @@ export function VacancyUpdatePage() {
     useEffect(() => {
         if (vacancy) {
             setTitle(vacancy.title);
-            setPositionTitle(vacancy.positionTitle);
             setDescription(vacancy.description);
             setSalary(vacancy.salary);
             setExperience(vacancy.experience);
@@ -45,14 +44,10 @@ export function VacancyUpdatePage() {
         }
     }, [vacancy])
 
-    if (token?.role == 'Candidate') {
+    if (role == Role.Candidate) {
         return <p>Access denied</p>
     }
-
-    if (isError || isSkillsLoadingError || isErrorLoadingError || isCategoriesLoadingError) {
-        return <p>Error</p>
-    }
-
+    
     if (isLoading) {
         return <p>Loading...</p>
     }
@@ -62,14 +57,13 @@ export function VacancyUpdatePage() {
         updateVacancy({
             id: id,
             title: title,
-            positionTitle: positionTitle,
             description: description,
             salary: salary,
             experience: experience,
             attendanceMode: attendanceMode,
             categoryId: selectedCategory,
-            locations: locations.filter(location => selectedLocations.includes(location.id)),
-            skills: skills.filter(skill => selectedSkills.includes(skill.id))
+            locations: locations?.filter(location => selectedLocations.includes(location.id)),
+            skills: skills?.filter(skill => selectedSkills.includes(skill.id))
         } as VacancyUpdateModel);
         navigate('/vacancy/myVacancies');
     }
@@ -88,15 +82,6 @@ export function VacancyUpdatePage() {
                     name="title"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    fullWidth
-                    required
-                />
-                <TextField
-                    label="Position Title"
-                    margin="normal"
-                    name="positionTitle"
-                    value={positionTitle}
-                    onChange={(e) => setPositionTitle(e.target.value)}
                     fullWidth
                     required
                 />

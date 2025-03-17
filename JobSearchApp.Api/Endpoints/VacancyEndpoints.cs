@@ -27,7 +27,7 @@ public static class VacancyEndpoints
         .WithName("GetVacancies")
         .WithOpenApi();
 
-        vacancyGroup.MapGet("/recruiterVacancies/{recruiterId}", async (int recruiterId, [AsParameters] VacancyFilterParameters vacancyFilter, [FromServices] IVacancyService vacanciesService) =>
+        vacancyGroup.MapGet("/recruiterVacancies/{recruiterId}", async ([FromRoute]int recruiterId, [AsParameters] VacancyFilterParameters vacancyFilter, [FromServices] IVacancyService vacanciesService) =>
         {
             return Results.Ok(await vacanciesService.GetVacanciesByRecruiterId(recruiterId, vacancyFilter));
         })

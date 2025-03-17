@@ -28,8 +28,8 @@ export const vacancyApi = createApi({
             providesTags: ['VacancyAll']
         }),
         getRecruiterVacancies: builder.query<VacancyGetAll[], { recruiterId: string, filter: VacancyFilter }>({
-            query: (filter: { recruiterId: string, filter: VacancyFilter }) => ({
-                url: '/vacancy/getRecruiterVacancies/' + filter.recruiterId,
+            query: ({ recruiterId, filter }) => ({
+                url: '/vacancy/recruiterVacancies/' + recruiterId,
                 method: 'get',
                 params: filter
             }),
