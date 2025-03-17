@@ -1,7 +1,7 @@
 using JobSearchApp.Core.Contracts.Vacancies;
 using JobSearchApp.Core.Models.Vacancies;
 using JobSearchApp.Data.Enums;
-using JobSearchApp.Data.Models.Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JobSearchApp.Api.Endpoints;
@@ -33,7 +33,7 @@ public static class LocationEndpoints
                 var createdLocation = await locationService.CreateLocation(location);
                 return Results.Ok(createdLocation);
             })
-            .RequireAuthorization(Role.Admin.ToString())
+            .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin}" })
             .WithName("CreateLocation")
             .WithOpenApi();
 
@@ -42,7 +42,7 @@ public static class LocationEndpoints
                 var updatedLocation = await locationService.UpdateLocation(location);
                 return Results.Ok(updatedLocation);
             })
-            .RequireAuthorization(Role.Admin.ToString())
+            .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin}" })
             .WithName("UpdateLocation")
             .WithOpenApi();
 
@@ -51,7 +51,7 @@ public static class LocationEndpoints
                 await locationService.DeleteLocation(id);
                 return Results.Ok();
             })
-            .RequireAuthorization(Role.Admin.ToString())
+            .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin}" })
             .WithName("DeleteLocation")
             .WithOpenApi();
 
@@ -61,7 +61,7 @@ public static class LocationEndpoints
                     await locationService.DeleteManyLocations(locations);
                     return Results.Ok();
                 })
-            .RequireAuthorization(Role.Admin.ToString())
+            .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin}" })
             .WithName("DeleteManyLocations")
             .WithOpenApi();
     }

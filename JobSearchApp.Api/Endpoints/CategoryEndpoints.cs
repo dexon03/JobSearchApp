@@ -1,10 +1,10 @@
 using JobSearchApp.Core.Contracts.Vacancies;
 using JobSearchApp.Core.Models.Vacancies;
+using JobSearchApp.Data.Enums;
 using JobSearchApp.Data.Models.Vacancies;
+using Microsoft.AspNetCore.Authorization;
 
 namespace JobSearchApp.Api.Endpoints;
-
-using JobSearchApp.Data.Enums;
 
 public static class CategoryEndpoints
 {
@@ -33,7 +33,7 @@ public static class CategoryEndpoints
                 var createdCategory = await categoryService.CreateCategory(category);
                 return Results.Ok(createdCategory);
             })
-            .RequireAuthorization(Role.Admin.ToString())
+            .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin}" })
             .WithName("CreateCategory")
             .WithOpenApi();
 
@@ -42,7 +42,7 @@ public static class CategoryEndpoints
                 var updatedCategory = await categoryService.UpdateCategory(category);
                 return Results.Ok(updatedCategory);
             })
-            .RequireAuthorization(Role.Admin.ToString())
+            .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin}" })
             .WithName("UpdateCategory")
             .WithOpenApi();
 
@@ -51,7 +51,7 @@ public static class CategoryEndpoints
                 await categoryService.DeleteCategory(id);
                 return Results.Ok();
             })
-            .RequireAuthorization(Role.Admin.ToString())
+            .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin}" })
             .WithName("DeleteCategory")
             .WithOpenApi();
 
@@ -60,7 +60,7 @@ public static class CategoryEndpoints
                 await categoryService.DeleteMany(categories);
                 return Results.Ok();
             })
-            .RequireAuthorization(Role.Admin.ToString())
+            .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin}" })
             .WithName("DeleteManyCategories")
             .WithOpenApi();
     }

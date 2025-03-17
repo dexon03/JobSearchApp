@@ -15,4 +15,18 @@ public class RecruiterProfileUpdateDto : ProfileUpdateDto<RecruiterProfile>
     public string? PositionTitle { get; set; }
     public bool IsActive { get; set; } = false;
     public int? CompanyId { get; set; }
-};
+}
+// export interface Profile {
+//     id: string;
+//     name?: string;
+//     surname?: string;
+//     email?: string;
+//     phoneNumber?: string;
+//     dateBirth?: Date;
+//     description: string;
+//     imageUrl?: string;
+//     linkedInUrl?: string;
+//     positionTitle?: string;
+//     isActive: boolean;
+//     userId: string;
+// }

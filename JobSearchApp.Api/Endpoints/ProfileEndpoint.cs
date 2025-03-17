@@ -2,6 +2,7 @@ using System.Security.Claims;
 using JobSearchApp.Core.Contracts.Profiles;
 using JobSearchApp.Core.Models.Profiles;
 using JobSearchApp.Data.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Role = JobSearchApp.Data.Enums.Role;
@@ -17,15 +18,15 @@ public static class ProfileEndpoints
         profileGroup.MapGet("/{role}",
                 async (Role role, ClaimsPrincipal claims, IProfileService profileService,
                     UserManager<User> userManager) =>
-            {
-                var userId = int.Parse(userManager.GetUserId(claims) ?? throw new InvalidOperationException());
-                return role switch
                 {
-                    Role.Candidate => Results.Ok(await profileService.GetCandidateProfileByUserId(userId)),
-                    Role.Recruiter => Results.Ok(await profileService.GetRecruiterProfileByUserId(userId)),
-                    _ => Results.BadRequest()
-                };
-            })
+                    var userId = int.Parse(userManager.GetUserId(claims) ?? throw new InvalidOperationException());
+                    return role switch
+                    {
+                        Role.Candidate => Results.Ok(await profileService.GetCandidateProfileByUserId(userId)),
+                        Role.Recruiter => Results.Ok(await profileService.GetRecruiterProfileByUserId(userId)),
+                        _ => Results.BadRequest()
+                    };
+                })
             .WithName("GetUserProfile")
             .WithOpenApi();
 
@@ -38,7 +39,8 @@ public static class ProfileEndpoints
             .WithOpenApi();
 
         profileGroup.MapGet("/candidate/{profileId}",
-                async (int profileId, IProfileService profileService) => Results.Ok((object?)await profileService.GetCandidateProfile(profileId)))
+                async (int profileId, IProfileService profileService) =>
+                    Results.Ok((object?)await profileService.GetCandidateProfile(profileId)))
             .WithName("GetCandidateProfile")
             .WithOpenApi();
 
@@ -54,14 +56,17 @@ public static class ProfileEndpoints
         profileGroup.MapPut("/candidate",
                 async (CandidateProfileUpdateDto profile, IProfileService profileService) =>
                     Results.Ok((object?)await profileService.UpdateCandidateProfile(profile)))
+            .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Candidate}" })
             .WithName("UpdateCandidateProfile")
             .WithOpenApi();
 
-        profileGroup.MapPut("/uploadResume", async ([FromForm]ResumeUploadDto resume, IProfileService profileService) =>
-            {
-                await profileService.UploadResume(resume);
-                return Results.Ok();
-            })
+        profileGroup.MapPut("/uploadResume",
+                async ([FromForm] ResumeUploadDto resume, IProfileService profileService) =>
+                {
+                    await profileService.UploadResume(resume);
+                    return Results.Ok();
+                })
+            .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Candidate}" })
             .WithName("UploadResume")
             .WithOpenApi()
             .DisableAntiforgery();
@@ -69,16 +74,15 @@ public static class ProfileEndpoints
         profileGroup.MapGet("/downloadResume/{profileId}", async (int profileId, IProfileService profileService) =>
             {
                 var result = await profileService.DownloadResume(profileId);
-                return result is null ? Results.Ok() : Results.File(result, "application/pdf");
+                return result is null ? Results.Ok() : Results.File(result, "application/pdf", "Test.pdf");
             })
             .WithName("DownloadResume")
             .WithOpenApi();
 
         profileGroup.MapPut("/recruiter",
-                async (RecruiterProfileUpdateDto profile, IProfileService profileService) =>
-                {
-                    return Results.Ok(await profileService.UpdateRecruiterProfile(profile));
-                })
+                async ([FromBody] RecruiterProfileUpdateDto profile, [FromServices] IProfileService profileService) =>
+                Results.Ok((object?)await profileService.UpdateRecruiterProfile(profile)))
+            .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Recruiter}" })
             .WithName("UpdateRecruiterProfile")
             .WithOpenApi();
     }

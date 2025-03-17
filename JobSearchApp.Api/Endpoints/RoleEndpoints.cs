@@ -1,8 +1,6 @@
 using System.Security.Claims;
 using JobSearchApp.Data.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace JobSearchApp.Api.Endpoints;
 
@@ -27,6 +25,7 @@ public static class RoleEndpoints
                 {
                     return Results.BadRequest("User not found");
                 }
+
                 var role = (await userManager.GetRolesAsync(user)).FirstOrDefault();
                 return role is not null ? Results.Ok(role) : Results.BadRequest("Role not found");
             })

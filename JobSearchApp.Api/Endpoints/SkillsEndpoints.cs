@@ -1,7 +1,7 @@
 using JobSearchApp.Core.Contracts.Vacancies;
 using JobSearchApp.Core.Models.Vacancies;
 using JobSearchApp.Data.Enums;
-using JobSearchApp.Data.Models.Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JobSearchApp.Api.Endpoints;
@@ -33,7 +33,7 @@ public static class SkillsEndpoints
                 var createdSkill = await skillService.CreateSkill(skill);
                 return Results.Ok(createdSkill);
             })
-            .RequireAuthorization(Role.Admin.ToString(), Role.Recruiter.ToString(), "CompanyOwner")
+            .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin},{Role.Recruiter},CompanyOwner" })
             .WithName("CreateSkill")
             .WithOpenApi();
 
@@ -42,7 +42,7 @@ public static class SkillsEndpoints
                 var updatedSkill = await skillService.UpdateSkill(skill);
                 return Results.Ok(updatedSkill);
             })
-            .RequireAuthorization(Role.Admin.ToString(), Role.Recruiter.ToString(), "CompanyOwner")
+            .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin},{Role.Recruiter},CompanyOwner" })
             .WithName("UpdateSkill")
             .WithOpenApi();
 
@@ -51,7 +51,7 @@ public static class SkillsEndpoints
                 await skillService.DeleteSkill(id);
                 return Results.Ok();
             })
-            .RequireAuthorization(Role.Admin.ToString(), Role.Recruiter.ToString(), "CompanyOwner")
+            .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin},{Role.Recruiter},CompanyOwner" })
             .WithName("DeleteSkill")
             .WithOpenApi();
 
@@ -61,7 +61,7 @@ public static class SkillsEndpoints
                     await skillService.DeleteManySkills(skills);
                     return Results.Ok();
                 })
-            .RequireAuthorization(Role.Admin.ToString(), Role.Recruiter.ToString(), "CompanyOwner")
+            .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin},{Role.Recruiter},CompanyOwner" })
             .WithName("DeleteManySkills")
             .WithOpenApi();
     }

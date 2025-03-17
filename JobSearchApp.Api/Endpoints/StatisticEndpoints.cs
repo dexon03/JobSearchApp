@@ -1,3 +1,4 @@
+using System.Net;
 using JobSearchApp.Core.Contracts.Vacancies;
 
 namespace JobSearchApp.Api.Endpoints;
@@ -10,7 +11,7 @@ public static class StatisticEndpoints
 
         statisticGroup.MapGet("/", async (string? skillName, IStatisticService statisticService) =>
             {
-                var encodedSkillName = System.Net.WebUtility.UrlEncode(skillName);
+                var encodedSkillName = WebUtility.UrlEncode(skillName);
                 return Results.Ok(await statisticService.GetStatisticAsync(encodedSkillName));
             })
             .WithName("GetStatistic")

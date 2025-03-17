@@ -1,7 +1,9 @@
+using System.Security.Claims;
 using JobSearchApp.Core.MessageContracts;
 using JobSearchApp.Core.Models.Identity;
 using JobSearchApp.Data.Models;
 using MassTransit;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Role = JobSearchApp.Data.Enums.Role;
@@ -12,7 +14,8 @@ public static class UsersEndpoints
 {
     public static void Register(RouteGroupBuilder group)
     {
-        var userGroup = group.MapGroup("/users").RequireAuthorization(Role.Admin.ToString());
+        var userGroup = group.MapGroup("/users")
+            .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin}" });
 
         userGroup.MapGet("/", async (int page, int pageSize, UserManager<User> userManager) =>
             {
@@ -41,7 +44,7 @@ public static class UsersEndpoints
             .WithName("GetUsers")
             .WithOpenApi();
 
-        userGroup.MapGet("/{id}", async (int id, UserManager<User> userManager)=>
+        userGroup.MapGet("/{id}", async (int id, UserManager<User> userManager) =>
             {
                 var user = await userManager.FindByIdAsync(id.ToString());
                 if (user is null) return Results.NotFound();
@@ -53,7 +56,7 @@ public static class UsersEndpoints
                     FirstName = user.FirstName,
                     LastName = user.LastName,
                     PhoneNumber = user.PhoneNumber,
-                    Role =  user.UserRoles.First().Role
+                    Role = user.UserRoles.First().Role
                 };
 
                 return Results.Ok(result);
@@ -74,9 +77,9 @@ public static class UsersEndpoints
 
                 await userManager.AddClaimsAsync(user, new[]
                 {
-                    new System.Security.Claims.Claim("FirstName", request.FirstName),
-                    new System.Security.Claims.Claim("LastName", request.LastName),
-                    new System.Security.Claims.Claim("Role", request.Role.ToString())
+                    new Claim("FirstName", request.FirstName),
+                    new Claim("LastName", request.LastName),
+                    new Claim("Role", request.Role.ToString())
                 });
 
                 await userManager.UpdateAsync(user);

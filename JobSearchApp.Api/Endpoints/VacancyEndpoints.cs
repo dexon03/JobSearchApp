@@ -1,10 +1,10 @@
 using JobSearchApp.Core.Contracts.Vacancies;
 using JobSearchApp.Core.Models.Vacancies;
+using JobSearchApp.Data.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JobSearchApp.Api.Endpoints;
-
-using JobSearchApp.Data.Enums;
 
 public static class VacancyEndpoints
 {
@@ -12,7 +12,7 @@ public static class VacancyEndpoints
     {
         var vacancyGroup = group.MapGroup("/vacancy");
 
-        vacancyGroup.MapGet("/{id}", async (int id, [FromServices]IVacancyService vacanciesService) =>
+        vacancyGroup.MapGet("/{id}", async (int id, [FromServices] IVacancyService vacanciesService) =>
         {
             var vacancy = await vacanciesService.GetVacancyById(id);
             return Results.Ok(vacancy);
@@ -20,14 +20,14 @@ public static class VacancyEndpoints
         .WithName("GetVacancyById")
         .WithOpenApi();
 
-        vacancyGroup.MapGet("", async ([AsParameters]VacancyFilterParameters vacancyFilter, [FromServices]IVacancyService vacanciesService) =>
+        vacancyGroup.MapGet("", async ([AsParameters] VacancyFilterParameters vacancyFilter, [FromServices] IVacancyService vacanciesService) =>
         {
             return Results.Ok(await vacanciesService.GetAllVacancies(vacancyFilter));
         })
         .WithName("GetVacancies")
         .WithOpenApi();
 
-        vacancyGroup.MapGet("/recruiterVacancies/{recruiterId}", async (int recruiterId, [AsParameters]VacancyFilterParameters vacancyFilter, [FromServices]IVacancyService vacanciesService) =>
+        vacancyGroup.MapGet("/recruiterVacancies/{recruiterId}", async (int recruiterId, [AsParameters] VacancyFilterParameters vacancyFilter, [FromServices] IVacancyService vacanciesService) =>
         {
             return Results.Ok(await vacanciesService.GetVacanciesByRecruiterId(recruiterId, vacancyFilter));
         })
@@ -39,7 +39,7 @@ public static class VacancyEndpoints
             await vacanciesService.DeleteVacancy(id);
             return Results.Ok();
         })
-        .RequireAuthorization(Role.Admin.ToString(), Role.Recruiter.ToString(), "CompanyOwner")
+        .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin},{Role.Recruiter},CompanyOwner" })
         .WithName("DeleteVacancy")
         .WithOpenApi();
 
@@ -48,7 +48,7 @@ public static class VacancyEndpoints
             var createdVacancy = await vacanciesService.CreateVacancy(vacancy);
             return Results.Ok(createdVacancy);
         })
-        .RequireAuthorization(Role.Admin.ToString(), Role.Recruiter.ToString(), "CompanyOwner")
+        .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin},{Role.Recruiter},CompanyOwner" })
         .WithName("CreateVacancy")
         .WithOpenApi();
 
@@ -57,7 +57,7 @@ public static class VacancyEndpoints
             var updatedVacancy = await vacanciesService.UpdateVacancy(vacancy);
             return Results.Ok(updatedVacancy);
         })
-        .RequireAuthorization(Role.Admin.ToString(), Role.Recruiter.ToString(), "CompanyOwner")
+        .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin},{Role.Recruiter},CompanyOwner" })
         .WithName("UpdateVacancy")
         .WithOpenApi();
 
@@ -66,7 +66,7 @@ public static class VacancyEndpoints
             await vacanciesService.ActivateDeactivateVacancy(id);
             return Results.Ok();
         })
-        .RequireAuthorization(Role.Admin.ToString(), Role.Recruiter.ToString(), "CompanyOwner")
+        .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin},{Role.Recruiter},CompanyOwner" })
         .WithName("ActivateDeactivateVacancy")
         .WithOpenApi();
 
@@ -85,7 +85,7 @@ public static class VacancyEndpoints
         //
         //     return Results.Ok(new { Description = result });
         // })
-        // .RequireAuthorization(Role.Recruiter.ToString())
+        // .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Recruiter}" })
         // .WithName("GetGeneratedVacancyDescription")
         // .WithOpenApi();
     }

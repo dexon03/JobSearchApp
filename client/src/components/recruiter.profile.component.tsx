@@ -5,11 +5,12 @@ import { useCreateCompanyMutation, useLazyGetProfileCompaniesQuery, useUpdateCom
 import { Company } from '../models/common/company.models';
 import { useAppDispatch } from '../hooks/redux.hooks';
 import { setRecruiterProfile } from '../app/slices/profile.slice';
+import { UpdateRecruiterProfileModel } from '../models/profile/updateRecruiterProfileModel';
 
 const RecruiterProfileComponent = () => {
   const { data: profile, isLoading, refetch } = useGetUserRecruiterProfileQuery();
   const [getCompanyQuery, { data: companies }] = useLazyGetProfileCompaniesQuery();
-  const [updateCandidateProfile, { error: updateError }] = useUpdateRecruiterProfileMutation();
+  const [updateRectuterProfile, { error: updateError }] = useUpdateRecruiterProfileMutation();
   const [updateCompany] = useUpdateCompanyMutation();
   const [createCompany] = useCreateCompanyMutation();
   const dispatch = useAppDispatch();
@@ -23,7 +24,7 @@ const RecruiterProfileComponent = () => {
   const [linkedInUrl, setLinkedInUrl] = useState('');
   const [positionTitle, setPositionTitle] = useState('');
   const [isActive, setIsActive] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<string>('');
+  const [selectedCompany, setSelectedCompany] = useState<number | null>(null);
   const [companyName, setCompanyName] = useState('');
   const [companyDescription, setCompanyDescription] = useState('');
   const [isNewCompany, setIsNewCompany] = useState(false);
@@ -38,18 +39,17 @@ const RecruiterProfileComponent = () => {
       setPhoneNumber(profile.phoneNumber || '');
       setDateOfBirth(profile.dateBirth!);
       setDescription(profile.description || '');
-      setLinkedInUrl(profile.linkedInUrl || '');
       setPositionTitle(profile.positionTitle || '');
       setIsActive(profile.isActive);
-      setSelectedCompany(profile.company ? profile.company.id : '');
+      setSelectedCompany(profile.company ? profile.company.id : null);
       setCompanyName(profile?.company ? profile.company.name : '');
       setCompanyDescription(profile?.company ? profile.company.description : '');
-      onCompanyChanged(selectedCompany)
+      onCompanyChanged(selectedCompany!);
       dispatch(setRecruiterProfile(profile));
     }
   }, [profile])
 
-  const onCompanyChanged = (companyId: string) => {
+  const onCompanyChanged = (companyId: number) => {
     try {
       setSelectedCompany(companyId);
       const company = companies?.find(company => company.id === companyId);
@@ -62,14 +62,14 @@ const RecruiterProfileComponent = () => {
   }
 
   const handleCompanySelection = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedValue: string = e.target.value;
+    const selectedValue = e.target.value;
     if (selectedValue === 'new') {
       setIsNewCompany(true);
       setCompanyName('');
       setCompanyDescription('');
     } else {
       setIsNewCompany(false);
-      onCompanyChanged(selectedValue);
+      onCompanyChanged(Number(selectedValue));
     }
   };
 
@@ -100,29 +100,28 @@ const RecruiterProfileComponent = () => {
   };
 
   useEffect(() => {
-    onCompanyChanged(selectedCompany);
+    onCompanyChanged(selectedCompany!);
   }, [selectedCompany])
 
   if (isLoading) {
     return <p>Loading...</p>;
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await updateCandidateProfile({
-        id: profile.id,
+      await updateRectuterProfile({
+        id: profile!.id,
         name,
         surname,
         email,
         phoneNumber,
         dateBirth: dateOfBirth,
         description,
-        linkedInUrl,
         positionTitle,
         isActive,
         companyId: selectedCompany
-      });
+      } as UpdateRecruiterProfileModel);
       await refetch();
 
     } catch (error) {

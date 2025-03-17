@@ -6,6 +6,7 @@ import { Role } from "../../../models/common/role.enum";
 import { SkillDto } from "../../../models/common/skill.dto";
 import { CandidateProfile } from "../../../models/profile/candidate.profile.model";
 import { RecruiterProfile } from "../../../models/profile/recruiter.profile.model";
+import { UpdateRecruiterProfileModel } from "../../../models/profile/updateRecruiterProfileModel";
 
 export const profileApi = createApi({
     reducerPath: 'profileApi',
@@ -48,8 +49,8 @@ export const profileApi = createApi({
             }),
             invalidatesTags: ['CandidateProfile']
         }),
-        updateRecruiterProfile: builder.mutation<RecruiterProfile, RecruiterProfile>({
-            query: (profile: RecruiterProfile) => ({
+        updateRecruiterProfile: builder.mutation<UpdateRecruiterProfileModel, RecruiterProfile>({
+            query: (profile: UpdateRecruiterProfileModel) => ({
                 url: `/profile/${Role[Role.Recruiter]}`,
                 method: 'put',
                 data: profile

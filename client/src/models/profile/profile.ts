@@ -7,8 +7,6 @@ export interface Profile {
     dateBirth?: Date;
     description: string;
     imageUrl?: string;
-    linkedInUrl?: string;
     positionTitle?: string;
     isActive: boolean;
-    userId: string;
 }

@@ -1,6 +1,7 @@
 using JobSearchApp.Core.Contracts.Vacancies;
 using JobSearchApp.Core.Models.Vacancies;
 using JobSearchApp.Data.Enums;
+using Microsoft.AspNetCore.Authorization;
 
 namespace JobSearchApp.Api.Endpoints;
 
@@ -31,7 +32,7 @@ public static class CompanyEndpoints
                 var createdCompany = await companyService.CreateCompany(company);
                 return Results.Ok(createdCompany);
             })
-            .RequireAuthorization(Role.Recruiter.ToString(), Role.Admin.ToString())
+            .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Recruiter},{Role.Admin}" })
             .WithName("CreateCompany")
             .WithOpenApi();
 
@@ -40,7 +41,7 @@ public static class CompanyEndpoints
                 var updatedCompany = await companyService.UpdateCompany(company);
                 return Results.Ok(updatedCompany);
             })
-            .RequireAuthorization(Role.Admin.ToString(), Role.Recruiter.ToString())
+            .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Recruiter},{Role.Admin}" })
             .WithName("UpdateCompany")
             .WithOpenApi();
 
@@ -49,7 +50,7 @@ public static class CompanyEndpoints
                 await companyService.DeleteCompany(id);
                 return Results.Ok();
             })
-            .RequireAuthorization(Role.Admin.ToString())
+            .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin}" })
             .WithName("DeleteCompany")
             .WithOpenApi();
     }

@@ -4,6 +4,7 @@ using JobSearchApp.Data.Models;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Role = JobSearchApp.Data.Enums.Role;
@@ -28,6 +29,12 @@ public static class DependencyInjection
         builder.Services.AddCors(opt =>
             opt.AddDefaultPolicy(c => c.AllowAnyMethod().AllowAnyOrigin().AllowAnyHeader()));
 
+        builder.Services.AddResponseCompression(options =>
+        {
+            options.MimeTypes = ResponseCompressionDefaults.MimeTypes
+                .Where(m => m != "application/pdf")
+                .ToArray();
+        });
         return builder;
     }
 
