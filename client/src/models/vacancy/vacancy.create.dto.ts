@@ -5,7 +5,6 @@ import { Experience } from "./experience.enum";
 
 export interface VacancyCreate {
     title: string;
-    positionTitle: string;
     description: string;
     salary: number;
     experience: Experience;
@@ -13,6 +12,6 @@ export interface VacancyCreate {
     locations: LocationDto[];
     skills: SkillDto[];
     categoryId: string;
-    companyId: string;
+    companyId: number;
     recruiterId: string;
 }

@@ -1,6 +1,5 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 WORKDIR /app
-USER root
 RUN mkdir -p /keys && chown -R $APP_UID:$APP_UID /keys
 EXPOSE 8080
 EXPOSE 8081

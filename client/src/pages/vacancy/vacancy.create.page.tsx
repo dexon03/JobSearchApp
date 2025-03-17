@@ -1,14 +1,15 @@
-import { useEffect, useState } from "react";
-import { useCreateVacancyMutation, useLazyGetVacancyCategoriesQuery, useLazyGetVacancyLocationQuery, useLazyGetVacancySkillsQuery, useLazyGenerateVacancyDesciprtionQuery } from "../../app/features/vacancy/vacancy.api"
-import { Experience } from "../../models/vacancy/experience.enum";
-import { AttendanceMode } from "../../models/common/attendance.enum";
 import { Button, Container, InputLabel, MenuItem, OutlinedInput, Select, TextField } from "@mui/material";
-import { VacancyCreate } from "../../models/vacancy/vacancy.create.dto";
-import { useAppSelector } from "../../hooks/redux.hooks";
-import useToken from "../../hooks/useToken";
-import { RecruiterProfile } from "../../models/profile/recruiter.profile.model";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { showWarningToast } from "../../app/features/common/popup";
+import { showErrorToast, showSuccessToast, showWarningToast } from "../../app/features/common/popup";
+import { useCreateVacancyMutation, useLazyGenerateVacancyDesciprtionQuery, useLazyGetVacancyCategoriesQuery, useLazyGetVacancyLocationQuery, useLazyGetVacancySkillsQuery } from "../../app/features/vacancy/vacancy.api";
+import { useAppSelector } from "../../hooks/redux.hooks";
+import useRole from "../../hooks/useRole";
+import { AttendanceMode } from "../../models/common/attendance.enum";
+import { RecruiterProfile } from "../../models/profile/recruiter.profile.model";
+import { Experience } from "../../models/vacancy/experience.enum";
+import { VacancyCreate } from "../../models/vacancy/vacancy.create.dto";
+import { Role } from "../../models/common/role.enum";
 
 export function VacancyCreatePage() {
     const [createVacancy, { data: createdProfile, isError: isCreateError }] = useCreateVacancyMutation();
@@ -16,13 +17,12 @@ export function VacancyCreatePage() {
     const [getVacancyLocations, { data: locations, isError: isErrorLoadingError }] = useLazyGetVacancyLocationQuery();
     const [getVacancyCategories, { data: categories, isError: isCategoriesLoadingError }] = useLazyGetVacancyCategoriesQuery();
     const [generateDescription, { data: generatedDescription }] = useLazyGenerateVacancyDesciprtionQuery();
-    const { token } = useToken();
+    const { role } = useRole();
     const navigate = useNavigate();
 
     const recruiterProfile: RecruiterProfile = useAppSelector(state => state.profile.recruiterProfile)
 
     const [title, setTitle] = useState('');
-    const [positionTitle, setPositionTitle] = useState('');
     const [description, setDescription] = useState('');
     const [salary, setSalary] = useState(0);
     const [experience, setExperience] = useState<Experience>(0);
@@ -43,13 +43,10 @@ export function VacancyCreatePage() {
         }
     }, [skills, locations, categories, getVacancySkills, getVacancyLocations, getVacancyCategories])
 
-    if (token?.role == 'Candidate') {
+    if (role == Role.Candidate) {
         return <p>Access denied</p>
     }
 
-    if (isSkillsLoadingError || isErrorLoadingError || isCategoriesLoadingError || isCreateError) {
-        return <p>Error</p>
-    }
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -59,20 +56,22 @@ export function VacancyCreatePage() {
         }
         const result = await createVacancy({
             title,
-            positionTitle,
             description,
             salary,
             experience,
             attendanceMode,
-            companyId: recruiterProfile?.company?.id,
-            recruiterId: recruiterProfile.id,
-            categoryId: categories && categories.find(category => category.id === selectedCategory)?.id,
             locations: locations && locations.filter(location => selectedLocations.includes(location.id)),
             skills: skills && skills.filter(skill => selectedSkills.includes(skill.id)),
+            categoryId: categories && categories.find(category => category.id === selectedCategory)?.id,
+            companyId: recruiterProfile?.company?.id,
+            recruiterId: recruiterProfile.id,
         } as VacancyCreate)
-        if (result.error == null) {
-            navigate('/vacancy')
+        if (result.error) {
+            showErrorToast('Error creating vacancy')
+            return;
         }
+        showSuccessToast('Vacancy created successfully')
+        navigate('/vacancy')
     }
 
     const handleGenerateWithGPT = async () => {
@@ -96,7 +95,7 @@ export function VacancyCreatePage() {
     }
 
     return (
-        token?.role == 'Candidate'
+        role == Role.Candidate
             ? <p>Access denied</p>
             : <Container component="main" maxWidth="sm">
                 <form onSubmit={handleSubmit}>
@@ -106,15 +105,6 @@ export function VacancyCreatePage() {
                         name="title"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        fullWidth
-                        required
-                    />
-                    <TextField
-                        label="Position Title"
-                        margin="normal"
-                        name="positionTitle"
-                        value={positionTitle}
-                        onChange={(e) => setPositionTitle(e.target.value)}
                         fullWidth
                         required
                     />

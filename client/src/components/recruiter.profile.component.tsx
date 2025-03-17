@@ -1,10 +1,11 @@
-import { TextField, Button, Container, Typography, Avatar, Checkbox, FormControlLabel, InputLabel, MenuItem, OutlinedInput, Select, Divider } from '@mui/material';
-import { useGetUserRecruiterProfileQuery, useUpdateRecruiterProfileMutation } from '../app/features/profile/profile.api';
+import { Avatar, Button, Checkbox, Container, Divider, FormControlLabel, InputLabel, MenuItem, OutlinedInput, Select, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
+import { showSuccessToast } from '../app/features/common/popup';
 import { useCreateCompanyMutation, useLazyGetProfileCompaniesQuery, useUpdateCompanyMutation } from '../app/features/company/company.api';
-import { Company } from '../models/common/company.models';
-import { useAppDispatch } from '../hooks/redux.hooks';
+import { useGetUserRecruiterProfileQuery, useUpdateRecruiterProfileMutation } from '../app/features/profile/profile.api';
 import { setRecruiterProfile } from '../app/slices/profile.slice';
+import { useAppDispatch } from '../hooks/redux.hooks';
+import { Company } from '../models/common/company.models';
 import { UpdateRecruiterProfileModel } from '../models/profile/updateRecruiterProfileModel';
 
 const RecruiterProfileComponent = () => {
@@ -41,7 +42,7 @@ const RecruiterProfileComponent = () => {
       setDescription(profile.description || '');
       setPositionTitle(profile.positionTitle || '');
       setIsActive(profile.isActive);
-      setSelectedCompany(profile.company ? profile.company.id : null);
+      setSelectedCompany(profile?.company?.id);
       setCompanyName(profile?.company ? profile.company.name : '');
       setCompanyDescription(profile?.company ? profile.company.description : '');
       onCompanyChanged(selectedCompany!);
@@ -82,6 +83,7 @@ const RecruiterProfileComponent = () => {
         } as Company);
         if (!response.error) {
           setSelectedCompany(response.data.id);
+          showSuccessToast("Company created successfully");
         }
       } catch (error) {
         console.error("Error creating company:", error);
@@ -96,6 +98,7 @@ const RecruiterProfileComponent = () => {
       } catch (error) {
         console.error("Error updating company:", error);
       }
+      showSuccessToast("Company updated successfully");
     }
   };
 
@@ -110,7 +113,7 @@ const RecruiterProfileComponent = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await updateRectuterProfile({
+      const result = await updateRectuterProfile({
         id: profile!.id,
         name,
         surname,
@@ -122,8 +125,11 @@ const RecruiterProfileComponent = () => {
         isActive,
         companyId: selectedCompany
       } as UpdateRecruiterProfileModel);
-      await refetch();
 
+      await refetch();
+      if ('data' in result) {
+        showSuccessToast("Profile updated successfully");
+      }
     } catch (error) {
       console.error("Error updating profile:", updateError);
     }
@@ -228,7 +234,7 @@ const RecruiterProfileComponent = () => {
             ))}
             <MenuItem value="new">Create New Company</MenuItem>
           </Select>
-          {selectedCompany || isNewCompany ?
+          {(selectedCompany || isNewCompany) ?
             <>
               <TextField
                 label="Company Name"

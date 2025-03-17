@@ -10,8 +10,6 @@ public class VacancyCreateDto
     public AttendanceMode Attendance { get; set; }
     public Experience Experience { get; set; }
     public bool IsActive { get; set; } = true;
-    public DateTime? CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
     public int RecruiterId { get; set; }
     public int CategoryId { get; set; }
     public int CompanyId { get; set; }

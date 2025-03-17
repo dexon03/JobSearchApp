@@ -1,15 +1,15 @@
-import { VacancyTile } from "../../components/vacancy.tile.tsx";
-import { useGetVacanciesQuery, useLazyGetVacancyCategoriesQuery, useLazyGetVacancyLocationQuery, useLazyGetVacancySkillsQuery } from "../../app/features/vacancy/vacancy.api.ts";
-import { Typography, Button, TextField, Pagination, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import useToken from "../../hooks/useToken.ts";
-import { Role } from "../../models/common/role.enum.ts";
+import { Button, FormControl, InputLabel, MenuItem, Pagination, Select, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useGetVacanciesQuery, useLazyGetVacancyCategoriesQuery, useLazyGetVacancyLocationQuery, useLazyGetVacancySkillsQuery } from "../../app/features/vacancy/vacancy.api.ts";
+import { VacancyTile } from "../../components/vacancy.tile.tsx";
+import useRole from "../../hooks/useRole.ts";
 import { AttendanceMode } from "../../models/common/attendance.enum.ts";
+import { Role } from "../../models/common/role.enum.ts";
 import { Experience } from "../../models/vacancy/experience.enum.ts";
 
 export function VacancyListPage() {
-    const { token } = useToken();
+    const { role } = useRole();
     const [searchTerm, setSearchTerm] = useState('');
     const [searchValue, setSearchValue] = useState('');
     const [page, setPage] = useState(1);
@@ -58,7 +58,7 @@ export function VacancyListPage() {
         <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', }} className="m-2">
                 <Typography variant="h5">Vacancies</Typography>
-                {token.role == Role[Role.Recruiter] ?
+                {role == Role[Role.Recruiter] ?
                     <div>
                         <Button variant="contained" className="mx-1" onClick={() => handleMyVacanciesClicked()}>
                             My vacancies

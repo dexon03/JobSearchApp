@@ -14,10 +14,8 @@ public record VacancyGetDto
     public Experience? Experience { get; set; }
     public double? Salary { get; set; }
     public bool IsActive { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
     public Company Company { get; set; } = null!;
     public Category? Category { get; set; } = null!;
-    public IEnumerable<Location>? Locations { get; set; }
-    public IEnumerable<Skill>? Skills { get; set; }
+    public IEnumerable<LocationDto>? Locations { get; set; }
+    public IEnumerable<SkillDto>? Skills { get; set; }
 };

@@ -39,7 +39,7 @@ public static class VacancyEndpoints
             await vacanciesService.DeleteVacancy(id);
             return Results.Ok();
         })
-        .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin},{Role.Recruiter},CompanyOwner" })
+        .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin},{Role.Recruiter}" })
         .WithName("DeleteVacancy")
         .WithOpenApi();
 
@@ -48,7 +48,7 @@ public static class VacancyEndpoints
             var createdVacancy = await vacanciesService.CreateVacancy(vacancy);
             return Results.Ok(createdVacancy);
         })
-        .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin},{Role.Recruiter},CompanyOwner" })
+        .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin},{Role.Recruiter}" })
         .WithName("CreateVacancy")
         .WithOpenApi();
 
@@ -57,7 +57,7 @@ public static class VacancyEndpoints
             var updatedVacancy = await vacanciesService.UpdateVacancy(vacancy);
             return Results.Ok(updatedVacancy);
         })
-        .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin},{Role.Recruiter},CompanyOwner" })
+        .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin},{Role.Recruiter}" })
         .WithName("UpdateVacancy")
         .WithOpenApi();
 
@@ -66,7 +66,7 @@ public static class VacancyEndpoints
             await vacanciesService.ActivateDeactivateVacancy(id);
             return Results.Ok();
         })
-        .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin},{Role.Recruiter},CompanyOwner" })
+        .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Admin},{Role.Recruiter}" })
         .WithName("ActivateDeactivateVacancy")
         .WithOpenApi();
 

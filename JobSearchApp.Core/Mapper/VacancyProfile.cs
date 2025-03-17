@@ -37,5 +37,20 @@ public class VacancyProfile : Profile
                         Vacancy = dest,
                         LocationId = x.Id
                     })));
+
+        CreateMap<Vacancy, VacancyGetDto>()
+            .ForMember(dest => dest.Locations, opt => opt.MapFrom(src => src.LocationVacancy))
+            .ForMember(dest => dest.Skills, opt => opt.MapFrom(src => src.VacancySkill));
+            ;
+        
+        CreateMap<LocationVacancy, LocationDto>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Location.Id))
+            .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.Location.City))
+            .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Location.Country));
+
+        CreateMap<VacancySkill, SkillDto>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Skill.Id))
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Skill.Name));
+
     }
 }

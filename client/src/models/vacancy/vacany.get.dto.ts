@@ -14,8 +14,6 @@ export interface VacancyGet {
     salary: number;
     experience: Experience;
     attendanceMode: AttendanceMode;
-    createdAt: Date;
-    updatedAt: Date;
     company: Company;
     category: Category;
     locations: LocationDto[];

@@ -5,34 +5,34 @@ import { AttendanceMode } from "../../models/common/attendance.enum";
 import { useState } from "react";
 import { useLazyGetRecruiterProfileQuery } from "../../app/features/profile/profile.api";
 import { ChatCreateDto } from "../../models/chat/chat.create.dto";
-import useToken from "../../hooks/useToken";
 import { useAppSelector } from "../../hooks/redux.hooks";
 import { Role } from "../../models/common/role.enum";
 import { useCreateChatMutation } from "../../app/features/chat/chat.api";
 import { showErrorToast } from "../../app/features/common/popup";
+import useRole from "../../hooks/useRole";
 
 export function VacancyPage() {
     const { id } = useParams();
-    const { data: vacancy, isError, isLoading, error } = useGetVacancyQuery(id);
+    const { data: vacancy, isError, isLoading, error } = useGetVacancyQuery(id!);
     const [getRecruiter] = useLazyGetRecruiterProfileQuery();
     const [createChat] = useCreateChatMutation();
     const [message, setMessage] = useState('');
     const [isMessageSent, setIsMessageSent] = useState(false);
-    const { token } = useToken();
     const candidate = useAppSelector(state => state.profile.candidateProfile);
+
+    const { role } = useRole();
 
     const handleSendMessage = async () => {
         if (!message) return;
 
-        const recruiter = await getRecruiter(vacancy.recruiterId);
+        const recruiter = await getRecruiter(vacancy!.recruiterId);
         const currentPageUrl = window.location.href;
         const messageToSend = message + `\n\n${currentPageUrl}`;
         if (candidate && !recruiter.isError) {
             const request = {
-                senderId: token?.userId,
                 senderName: candidate?.name + ' ' + candidate?.surname,
-                receiverId: recruiter?.data.userId,
-                receiverName: recruiter?.data.name + ' ' + recruiter?.data.surname,
+                receiverId: recruiter?.data?.userId,
+                receiverName: recruiter?.data?.name + ' ' + recruiter?.data?.surname,
                 message: messageToSend,
             } as ChatCreateDto
             const result = await createChat(request);
@@ -53,7 +53,7 @@ export function VacancyPage() {
         return <p>Error: {JSON.stringify(error.data)}</p>;
     }
 
-    const locationString = [...new Set(vacancy?.locations.map(location => `${location.city}, ${location.country}`))].join(', ');
+    const locationString = [...new Set(vacancy?.locations?.map(location => `${location.city}, ${location.country}`))].join(', ');
 
     return (
         vacancy &&
@@ -90,7 +90,7 @@ export function VacancyPage() {
                     </CardContent>
                 </Card>
             </div >
-            {token?.role == Role[Role.Candidate] ? (!isMessageSent ?
+            {role == Role.Candidate ? (!isMessageSent ?
                 <div style={{ marginTop: '1rem', width: '100%' }}>
                     <TextField
                         label="Type your message"
