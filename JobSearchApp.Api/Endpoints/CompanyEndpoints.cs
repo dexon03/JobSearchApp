@@ -31,7 +31,7 @@ public static class CompanyEndpoints
                 var createdCompany = await companyService.CreateCompany(company);
                 return Results.Ok(createdCompany);
             })
-            .RequireAuthorization(Role.Admin.ToString(), Role.Recruiter.ToString())
+            .RequireAuthorization(Role.Recruiter.ToString(), Role.Admin.ToString())
             .WithName("CreateCompany")
             .WithOpenApi();
 

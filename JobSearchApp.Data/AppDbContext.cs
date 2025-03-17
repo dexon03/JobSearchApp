@@ -75,6 +75,18 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
                 .WithMany(p => p.ProfileSkills)
                 .HasForeignKey(ps => ps.ProfileId);
         });
+        
+        builder.Entity<LocationProfile>(x =>
+        {
+            x
+                .HasOne(lp => lp.Location)
+                .WithMany(l => l.LocationProfiles)
+                .HasForeignKey(lp => lp.LocationId);
+            x
+                .HasOne(lp => lp.Profile)
+                .WithMany(p => p.LocationProfiles)
+                .HasForeignKey(lp => lp.ProfileId);
+        });
 
         builder.Entity<Vacancy>(x =>
         {
@@ -101,17 +113,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
                 .HasForeignKey(vs => vs.VacancyId);
         });
 
-        builder.Entity<LocationProfile>(x =>
-        {
-            x
-                .HasOne(lp => lp.Location)
-                .WithMany(l => l.LocationProfiles)
-                .HasForeignKey(lp => lp.LocationId);
-            x
-                .HasOne(lp => lp.Profile)
-                .WithMany(p => p.LocationProfiles)
-                .HasForeignKey(lp => lp.ProfileId);
-        });
+        
 
         builder.Entity<Message>(x =>
         {

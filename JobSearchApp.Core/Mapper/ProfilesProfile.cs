@@ -25,22 +25,20 @@ public class ProfilesProfile : Profile
                         LocationId = x.Id
                     })));
 
+        CreateMap<LocationProfile, LocationDto>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Location.Id))
+            .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.Location.City))
+            .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Location.Country));
+
+        CreateMap<ProfileSkills, SkillDto>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Skill.Id))
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Skill.Name));
+
+        
         CreateMap<CandidateProfile, GetCandidateProfileDto>()
-            .ForMember(x => x.Locations,
-                opt =>
-                    opt.MapFrom((source, dest) => source.LocationProfiles.Select(x => new LocationDto
-                    {
-                        Id = x.Location.Id,
-                        City = x.Location.City,
-                        Country = x.Location.Country
-                    })))
-            .ForMember(x => x.Skills,
-                opt =>
-                    opt.MapFrom((source, dest) => source.ProfileSkills.Select(x => new SkillDto
-                    {
-                        Id = x.Skill.Id,
-                        Name = x.Skill.Name
-                    })));
+            .ForMember(dest => dest.Locations, opt => opt.MapFrom(src => src.LocationProfiles))
+            .ForMember(dest => dest.Skills, opt => opt.MapFrom(src => src.ProfileSkills));
+
         CreateMap<RecruiterProfile, GetRecruiterProfileDto>();
     }
 }

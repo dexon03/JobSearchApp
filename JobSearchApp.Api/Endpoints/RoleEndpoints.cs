@@ -12,15 +12,12 @@ public static class RoleEndpoints
     {
         var roleGroup = group.MapGroup("/role");
 
-        // Allow Anonymous Access
-        roleGroup.WithMetadata(new AllowAnonymousAttribute());
-
         // roleGroup.MapGet("/", async (RoleManager<Role> roleManager) =>
         //     {
         //         var roles = await roleManager.Roles.ToListAsync();
         //         return Results.Ok(roles);
         //     })
-        //     .WithName("GetRoles")
+        //     .WithName("GetRoles")Companies
         //     .WithOpenApi();
 
         roleGroup.MapGet("/", async (ClaimsPrincipal claimsPrincipal, UserManager<User> userManager) =>

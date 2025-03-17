@@ -1,6 +1,7 @@
 ﻿using JobSearchApp.Data;
 using JobSearchApp.Data.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Role = JobSearchApp.Data.Enums.Role;
 
 namespace JobSearchApp.Api.Setup;
@@ -13,6 +14,9 @@ public class SeedData
         
         var services = serviceScope.ServiceProvider;
         var context = services.GetService<AppDbContext>();
+
+        context?.Database.Migrate();
+            
         var userManager = services.GetService<UserManager<User>>();
         var user = new User
         {
@@ -29,16 +33,16 @@ public class SeedData
         };
 
 
-        if (!context.Users.Any(u => u.UserName == user.UserName))
+        if (context != null && !context.Users.Any(u => u.UserName == user.UserName))
         {
             var password = new PasswordHasher<User>();
             var hashed = password.HashPassword(user, "admin");
             user.PasswordHash = hashed;
 
-            userManager.CreateAsync(user).Wait();
-            userManager.AddToRoleAsync(user, "Admin").Wait();
+            userManager?.CreateAsync(user).Wait();
+            userManager?.AddToRoleAsync(user, "Admin").Wait();
+            context?.SaveChanges();
         }
 
-        context.SaveChanges();
     }
 }

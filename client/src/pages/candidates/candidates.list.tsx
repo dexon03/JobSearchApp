@@ -18,7 +18,17 @@ export function CandidateList() {
     const [filterExperience, setFilterExperience] = useState<Experience>();
     const [filterLocation, setFilterLocation] = useState('');
     const [filterSkill, setFilterSkill] = useState('');
-    const { data: candidates, isLoading, isError, error, refetch } = useGetCandidatesProfileQuery({ page, pageSize, searchTerm: searchValue, attendanceMode: filterAttendance, experience: filterExperience, location: filterLocation, skill: filterSkill })
+    const { data: candidates, isLoading, isError, error, refetch } = useGetCandidatesProfileQuery(
+        {
+            page,
+            pageSize,
+            searchTerm: searchValue,
+            attendanceMode: filterAttendance,
+            experience: filterExperience,
+            location: filterLocation,
+            skill: filterSkill
+        }
+    )
 
     useEffect(() => {
         getLocations();

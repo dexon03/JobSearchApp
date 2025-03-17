@@ -17,10 +17,10 @@ export function CandidateTile({ profile }: { profile: CandidateProfile }) {
         <Card className="m-2">
             <CardContent style={{ display: 'flex', flexDirection: 'column' }}>
                 <div style={{ flexGrow: 1 }}>
-                    <Typography variant="h5">{profile.positionTitle}</Typography>
+                    <Typography variant="h5">{profile?.positionTitle}</Typography>
                     <Typography variant="body2">{countries}, {Experience[profile.workExperience]}, {AttendanceMode[profile.attendance]}</Typography>
-                    <Typography variant="h6" align="right" style={{ color: 'green' }}>{profile.desiredSalary} USD</Typography>
-                    <Typography variant="body1">{profile.description.slice(0, 100)}{profile.description.length > 100 ? '...' : null}</Typography>
+                    <Typography variant="h6" align="right" style={{ color: 'green' }}>{profile?.desiredSalary} USD</Typography>
+                    <Typography variant="body1">{profile.description?.slice(0, 100)}{profile.description?.length > 100 ? '...' : null}</Typography>
                     <Box m={2} />
                     {profile.skills && profile.skills.length > 0 ? profile.skills.map((skill) => (
                         <Chip label={skill.name} variant="outlined" key={skill.id} />
