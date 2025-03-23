@@ -7,6 +7,7 @@ import { AttendanceMode } from "../../models/common/attendance.enum";
 import { Experience } from "../../models/vacancy/experience.enum";
 import { VacancyUpdateModel } from "../../models/vacancy/vacancy.update.dto";
 import { Role } from "../../models/common/role.enum";
+import { showErrorToast, showSuccessToast } from "../../app/features/common/popup";
 
 export function VacancyUpdatePage() {
     const { id } = useParams();
@@ -47,14 +48,14 @@ export function VacancyUpdatePage() {
     if (role == Role.Candidate) {
         return <p>Access denied</p>
     }
-    
+
     if (isLoading) {
         return <p>Loading...</p>
     }
 
-    function handleSubmit(event: FormEvent<HTMLFormElement>): void {
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
         event.preventDefault();
-        updateVacancy({
+        const result = await updateVacancy({
             id: id,
             title: title,
             description: description,
@@ -65,6 +66,11 @@ export function VacancyUpdatePage() {
             locations: locations?.filter(location => selectedLocations.includes(location.id)),
             skills: skills?.filter(skill => selectedSkills.includes(skill.id))
         } as VacancyUpdateModel);
+        if ('error' in result) {
+            showErrorToast('Error updating vacancy');
+            return;
+        }
+        showSuccessToast('Vacancy updated successfully');
         navigate('/vacancy/myVacancies');
     }
 

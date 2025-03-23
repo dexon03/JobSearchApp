@@ -1,20 +1,19 @@
 ﻿services:
-#  jobsearchapp.api:
-#    image: jobsearchapp.api
-#    build:
-#      context: .
-#      dockerfile: JobSearchApp.Api/Dockerfile
-#    ports:
-#      - "5051:8080"
-#    depends_on:
-#      - jobsearchapp.db
-#      - jobsearchapp.rabbitmq
-#      - jobsearchapp.redis
-#    environment:
-#      - ASPNETCORE_ENVIRONMENT=Docker
-#    volumes:
-#      - keys:/app/keys
-  
+  jobsearchapp.api:
+    image: jobsearchapp.api
+    build:
+      context: .
+      dockerfile: JobSearchApp.Api/Dockerfile
+    ports:
+      - "5051:8080"
+    depends_on:
+      - jobsearchapp.db
+      - jobsearchapp.rabbitmq
+      - jobsearchapp.redis
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+    volumes:
+      - keys:/app/keys
   
   jobsearchapp.db:
     image: postgres

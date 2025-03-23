@@ -1,15 +1,15 @@
-import { useParams } from "react-router-dom"
-import { useGetCandidateProfileQuery, useLazyGetCandidateProfileQuery } from "../../app/features/profile/profile.api"
-import { Card, CardContent, Typography, Chip, Button, TextField } from "@mui/material";
+import { Button, Card, CardContent, Chip, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import { useAppSelector } from "../../hooks/redux.hooks";
-import useToken from "../../hooks/useToken";
-import { showErrorToast } from "../../app/features/common/popup";
-import { ChatCreateDto } from "../../models/chat/chat.create.dto";
-import { useCreateChatMutation } from "../../app/features/chat/chat.api";
-import { Role } from "../../models/common/role.enum";
 import { Document, Page } from 'react-pdf';
+import { useParams } from "react-router-dom";
+import { useCreateChatMutation } from "../../app/features/chat/chat.api";
+import { showErrorToast } from "../../app/features/common/popup";
 import { useLazyDownloadResumeQuery } from "../../app/features/profile/candidateResume.api";
+import { useGetCandidateProfileQuery } from "../../app/features/profile/profile.api";
+import { useAppSelector } from "../../hooks/redux.hooks";
+import useRole from "../../hooks/useRole";
+import { ChatCreateDto } from "../../models/chat/chat.create.dto";
+import { Role } from "../../models/common/role.enum";
 
 export function CandidatePage() {
     const { id } = useParams();
@@ -18,7 +18,7 @@ export function CandidatePage() {
     const [downloadResume] = useLazyDownloadResumeQuery();
     const [message, setMessage] = useState('');
     const [isMessageSent, setIsMessageSent] = useState(false);
-    const { token } = useToken();
+    const { role } = useRole();
     const [resumePdf, setResumePdf] = useState<File | null>(null);
     const [numPages, setNumPages] = useState<number>();
     const recruiter = useAppSelector(state => state.profile.recruiterProfile);
@@ -37,7 +37,6 @@ export function CandidatePage() {
 
         if (recruiter) {
             const request = {
-                senderId: token?.userId,
                 senderName: recruiter?.name + ' ' + recruiter?.surname,
                 receiverId: profile.userId,
                 receiverName: profile.name + ' ' + profile.surname,
@@ -58,7 +57,7 @@ export function CandidatePage() {
     }
 
     if (isError) {
-        return <p>Error: {JSON.stringify(error.data)}</p>;
+        showErrorToast(`Error: ${JSON.stringify(error.data)}`);
     }
 
     // Create a string of unique locations separated by commas
@@ -114,7 +113,7 @@ export function CandidatePage() {
                 : null
             }
             {
-                token?.role == Role[Role.Recruiter] ? (!isMessageSent ?
+                role == Role[Role.Recruiter] ? (!isMessageSent ?
                     <div style={{ marginTop: '1rem', width: '100%' }}>
                         <TextField
                             label="Type your message"

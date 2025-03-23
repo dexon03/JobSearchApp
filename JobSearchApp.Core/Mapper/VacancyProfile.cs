@@ -13,14 +13,14 @@ public class VacancyProfile : Profile
                 opt =>
                     opt.MapFrom((source, dest) => source.Skills.Select(x => new VacancySkill
                     {
-                        Vacancy = dest,
+                        VacancyId = dest.Id,
                         SkillId = x.Id
                     })))
             .ForMember(x => x.LocationVacancy,
                 opt =>
                     opt.MapFrom((source, dest) => source.Locations.Select(x => new LocationVacancy
                     {
-                        Vacancy = dest,
+                        VacancyId = dest.Id,
                         LocationId = x.Id
                     })));
         CreateMap<VacancyCreateDto, Vacancy>().ForMember(x => x.VacancySkill,

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using JobSearchApp.Core.Models.Chat;
 using JobSearchApp.Data;
 using JobSearchApp.Data.Models;
@@ -20,10 +21,16 @@ public class ChatHub(AppDbContext db) : Hub
 
     public async Task SendMessage(SendMessageDto messageDto)
     {
+        var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+        {
+            throw new HubException("User is not authenticated.");
+        }
+
         var messageEntity = new Message
         {
             Content = messageDto.Content,
-            SenderId = messageDto.SenderId,
+            SenderId = int.Parse(userId),
             ReceiverId = messageDto.ReceiverId,
             ChatId = messageDto.ChatId,
             TimeStamp = DateTime.Now,
@@ -37,7 +44,7 @@ public class ChatHub(AppDbContext db) : Hub
             Content = messageDto.Content,
             Sender = new User
             {
-                Id = messageDto.SenderId,
+                Id = int.Parse(userId),
                 UserName = messageDto.SenderName
             },
 

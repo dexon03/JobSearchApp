@@ -70,7 +70,9 @@ public class VacancyService(AppDbContext db, IMapper mapper, IFusionCache hybrid
     public async Task<List<VacancyGetAllDto>> GetVacanciesByRecruiterId(int recruiterId,
         VacancyFilterParameters vacancyFilter)
     {
-        var cacheKey = $"vacancies_recruiter_{recruiterId}_{vacancyFilter.Page}_{vacancyFilter.PageSize}";
+        var cacheKey =
+            $"vacancies_recruiter_{recruiterId}_{vacancyFilter.Page}_{vacancyFilter.PageSize}_{vacancyFilter.Experience}_{vacancyFilter.Category}_{vacancyFilter.Location}_{vacancyFilter.AttendanceMode}_{vacancyFilter.Skill}";
+        ;
         var cacheTag = $"vacancies_recruiter_{recruiterId}";
 
         return await hybridCache.GetOrSetAsync(
@@ -102,16 +104,20 @@ public class VacancyService(AppDbContext db, IMapper mapper, IFusionCache hybrid
         return result.Entity;
     }
 
-    public async Task<Vacancy> UpdateVacancy(VacancyUpdateDto vacancy)
+    public async Task<VacancyGetDto> UpdateVacancy(VacancyUpdateDto vacancy)
     {
-        var vacancyEntity = await db.Vacancies.FindAsync(vacancy.Id);
+        var vacancyEntity = await db.Vacancies
+            .Include(x => x.VacancySkill)
+            .Include(x => x.LocationVacancy)
+            .FirstOrDefaultAsync(x => x.Id == vacancy.Id);
+
         if (vacancyEntity is null)
         {
             _log.Warning("Attempt to update non-existing vacancy {VacancyId}.", vacancy.Id);
             throw new ExceptionWithStatusCode("Vacancy not found", HttpStatusCode.BadRequest);
         }
 
-        vacancyEntity = mapper.Map(vacancy, vacancyEntity);
+        mapper.Map(vacancy, vacancyEntity);
         vacancyEntity.UpdatedAt = DateTime.UtcNow;
 
         var result = db.Update(vacancyEntity);
@@ -121,7 +127,7 @@ public class VacancyService(AppDbContext db, IMapper mapper, IFusionCache hybrid
         await hybridCache.RemoveByTagAsync("vacancies");
         await hybridCache.RemoveByTagAsync($"vacancies_recruiter_{vacancyEntity.RecruiterId}");
         _log.Information("Vacancy {VacancyId} updated. Cache invalidated.", vacancyEntity.Id);
-        return result.Entity;
+        return mapper.Map<VacancyGetDto>(result.Entity);
     }
 
     public async Task DeleteVacancy(int id)
@@ -166,7 +172,7 @@ public class VacancyService(AppDbContext db, IMapper mapper, IFusionCache hybrid
     private async Task<List<VacancyGetAllDto>> GetAllVacanciesByCondition(Expression<Func<Vacancy, bool>> predicate,
         VacancyFilterParameters vacancyFilter)
     {
-        var vacancyQuery = db.Vacancies.AsQueryable();
+        var vacancyQuery = db.Vacancies.Where(predicate);
 
         if (!string.IsNullOrWhiteSpace(vacancyFilter.SearchTerm))
         {
@@ -204,7 +210,6 @@ public class VacancyService(AppDbContext db, IMapper mapper, IFusionCache hybrid
         }
 
         var vacancies = await vacancyQuery
-            .Where(predicate)
             .OrderBy(v => v.CreatedAt)
             .Select(v => new VacancyGetAllDto
             {

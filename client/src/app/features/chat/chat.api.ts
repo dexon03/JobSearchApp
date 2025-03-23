@@ -31,7 +31,7 @@ export const chatApi = createApi({
         }),
         createChat: builder.mutation<void, ChatCreateDto>({
             query: (chat: ChatCreateDto) => ({
-                url: `/chat/create`,
+                url: `/chat`,
                 method: 'post',
                 data: chat
             }),

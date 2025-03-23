@@ -80,7 +80,7 @@ export function RecruiterVacanciesList() {
                                 {value}
                             </MenuItem>
                         ))}
-                        <MenuItem value={undefined}>Clear</MenuItem>
+                        <MenuItem value={null}>Clear</MenuItem>
                     </Select>
                 </FormControl>
 
@@ -97,7 +97,7 @@ export function RecruiterVacanciesList() {
                                 {value}
                             </MenuItem>
                         ))}
-                        <MenuItem value={undefined}>Clear</MenuItem>
+                        <MenuItem value={null}>Clear</MenuItem>
                     </Select>
                 </FormControl>
 

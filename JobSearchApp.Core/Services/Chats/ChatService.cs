@@ -110,7 +110,7 @@ public class ChatService(
                 ChatId = existentChat.ChatId,
                 Content = chatDto.Message,
                 TimeStamp = DateTime.UtcNow,
-                SenderId = chatDto.SenderId,
+                SenderId = chatDto.SenderId.Value,
                 ReceiverId = chatDto.ReceiverId,
                 IsRead = false
             };
@@ -120,7 +120,7 @@ public class ChatService(
             _logger.Information("New message added to chat {ChatId} by user {SenderId}.", existentChat.ChatId,
                 chatDto.SenderId);
 
-            await InvalidateChatCacheAsync(existentChat.ChatId, chatDto.SenderId, chatDto.ReceiverId);
+            await InvalidateChatCacheAsync(existentChat.ChatId, chatDto.SenderId.Value, chatDto.ReceiverId);
         }
         else
         {
@@ -140,7 +140,7 @@ public class ChatService(
             Chat = chat,
             Content = chatDto.Message,
             TimeStamp = DateTime.UtcNow,
-            SenderId = chatDto.SenderId,
+            SenderId = chatDto.SenderId.Value,
             ReceiverId = chatDto.ReceiverId,
             IsRead = false
         };
@@ -152,7 +152,7 @@ public class ChatService(
         _logger.Information("Created new chat between {SenderId} and {ReceiverId}.", chatDto.SenderId,
             chatDto.ReceiverId);
 
-        await InvalidateChatCacheAsync(null, chatDto.SenderId, chatDto.ReceiverId);
+        await InvalidateChatCacheAsync(null, chatDto.SenderId.Value, chatDto.ReceiverId);
     }
 
     private async Task InvalidateChatCacheAsync(int? chatId, int senderId, int receiverId)

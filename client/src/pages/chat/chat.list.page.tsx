@@ -1,6 +1,5 @@
 import { List, ListItem, ListItemIcon, Grid, Card, CardContent, Typography, Pagination } from "@mui/material";
 import { useGetChatListQuery } from "../../app/features/chat/chat.api";
-import useToken from "../../hooks/useToken";
 import { ChatDto } from "../../models/chat/chat.dto";
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -9,8 +8,7 @@ import { useState } from "react";
 
 export default function ChatList() {
     const [page, setPage] = useState(1);
-    const pageSize = 10; // or any number you prefer
-    const { token } = useToken();
+    const pageSize = 10;
     const { data, isLoading } = useGetChatListQuery({
         page,
         pageSize
@@ -33,7 +31,7 @@ export default function ChatList() {
         <div>
             <h1>ChatList</h1>
             <List>
-                {data?.items?.map((chat: ChatDto) => (
+                {data?.map((chat: ChatDto) => (
                     <ListItem key={chat.id} onClick={() => onChatClick(chat.id)}>
                         <Card sx={{ width: '100%' }}>
                             <CardContent>
@@ -56,8 +54,8 @@ export default function ChatList() {
                     </ListItem>
                 ))}
             </List>
-            <Pagination 
-                count={Math.ceil((data?.totalCount ?? 0) / pageSize)} 
+            <Pagination
+                count={Math.ceil((data?.totalCount ?? 0) / pageSize)}
                 page={page}
                 onChange={handlePageChange}
                 sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}

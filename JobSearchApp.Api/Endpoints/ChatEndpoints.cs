@@ -40,8 +40,12 @@ public static class ChatEndpoints
 
         chatGroup.MapPost("", async (
                 CreateChatDto chatDto,
+                ClaimsPrincipal claims,
+                UserManager<User> userManager,
                 IChatService chatService) =>
             {
+                var userId = int.Parse(userManager.GetUserId(claims)!);
+                chatDto.SenderId = userId;
                 await chatService.CreateChat(chatDto);
                 return Results.Ok();
             })

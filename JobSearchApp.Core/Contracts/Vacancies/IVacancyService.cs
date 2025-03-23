@@ -9,7 +9,7 @@ public interface IVacancyService
     Task<VacancyGetDto> GetVacancyById(int id);
     Task<List<VacancyGetAllDto>> GetVacanciesByRecruiterId(int recruiterId,VacancyFilterParameters vacancyFilter);
     Task<Vacancy> CreateVacancy(VacancyCreateDto vacancyDto);
-    Task<Vacancy> UpdateVacancy(VacancyUpdateDto vacancy);
+    Task<VacancyGetDto> UpdateVacancy(VacancyUpdateDto vacancy);
     Task DeleteVacancy(int id);
     Task ActivateDeactivateVacancy(int id);
 }

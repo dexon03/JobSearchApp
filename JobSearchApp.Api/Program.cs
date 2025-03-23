@@ -66,6 +66,6 @@ app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapHub<ChatHub>("/chatHub");
+app.MapHub<ChatHub>("/api/chatHub");
 app.UseSerilogRequestLogging();
 app.Run();

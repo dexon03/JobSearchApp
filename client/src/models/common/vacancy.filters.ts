@@ -5,8 +5,8 @@ export interface VacancyFilter {
     searchTerm?: string;
     page: number;
     pageSize: number;
-    experience?: Experience;
-    attendanceMode?: AttendanceMode;
+    experience?: Experience | null;
+    attendanceMode?: AttendanceMode | null;
     skill?: string;
     category?: string;
     location?: string;

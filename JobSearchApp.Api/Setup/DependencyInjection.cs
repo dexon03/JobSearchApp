@@ -27,14 +27,8 @@ public static class DependencyInjection
 
         builder.Services.AddSignalR();
         builder.Services.AddCors(opt =>
-            opt.AddDefaultPolicy(c => c.AllowAnyMethod().AllowAnyOrigin().AllowAnyHeader()));
-
-        builder.Services.AddResponseCompression(options =>
-        {
-            options.MimeTypes = ResponseCompressionDefaults.MimeTypes
-                .Where(m => m != "application/pdf")
-                .ToArray();
-        });
+            opt.AddDefaultPolicy(c => c.AllowAnyMethod().WithOrigins("http://localhost:5173").AllowAnyHeader().AllowCredentials()));
+        
         return builder;
     }
 
