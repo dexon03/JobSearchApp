@@ -13,7 +13,7 @@ import useRole from "../../hooks/useRole";
 
 export function VacancyPage() {
     const { id } = useParams();
-    const { data: vacancy, isError, isLoading, error } = useGetVacancyQuery(id!);
+    const { data: vacancy } = useGetVacancyQuery(id!);
     const [getRecruiter] = useLazyGetRecruiterProfileQuery();
     const [createChat] = useCreateChatMutation();
     const [message, setMessage] = useState('');
@@ -45,13 +45,6 @@ export function VacancyPage() {
         }
     };
 
-    if (isLoading) {
-        return <p>Loading...</p>;
-    }
-
-    if (isError) {
-        return <p>Error: {JSON.stringify(error.data)}</p>;
-    }
 
     const locationString = [...new Set(vacancy?.locations?.map(location => `${location.city}, ${location.country}`))].join(', ');
 
@@ -90,7 +83,7 @@ export function VacancyPage() {
                     </CardContent>
                 </Card>
             </div >
-            {role == Role.Candidate ? (!isMessageSent ?
+            {role == Role[Role.Candidate] ? (!isMessageSent ?
                 <div style={{ marginTop: '1rem', width: '100%' }}>
                     <TextField
                         label="Type your message"

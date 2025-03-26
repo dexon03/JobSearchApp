@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.AI;
 using Serilog;
 using Role = JobSearchApp.Data.Enums.Role;
 
@@ -30,6 +31,8 @@ public static class DependencyInjection
         });
         builder.Services.AddCors(opt =>
             opt.AddDefaultPolicy(c => c.AllowAnyMethod().WithOrigins("http://localhost:5173").AllowAnyHeader().AllowCredentials()));
+        
+        builder.Services.AddChatClient(new OllamaChatClient(new Uri("http://localhost:11434"), "gemma3:1b"));
         
         return builder;
     }

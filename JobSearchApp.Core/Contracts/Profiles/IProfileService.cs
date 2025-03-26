@@ -18,5 +18,6 @@ public interface IProfileService
     Task<byte[]?> DownloadResume(int candidateId);
     Task DeleteProfile<T>(int id) where T : Profile<T>;
     Task DeleteProfileByUserId(int userId);
+    Task<string> GenerateProfileDescription(int userId, AiDescriptionRequest request);
     Task ActivateDeactivateProfile<T>(int id) where T : Profile<T>;
 }

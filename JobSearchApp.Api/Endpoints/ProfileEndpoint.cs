@@ -85,5 +85,19 @@ public static class ProfileEndpoints
             .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Recruiter}" })
             .WithName("UpdateRecruiterProfile")
             .WithOpenApi();
+
+        profileGroup.MapPost("/AiDescription", async (
+                ClaimsPrincipal claimsPrincipal,
+                [FromBody] AiDescriptionRequest description,
+                IProfileService profileService) =>
+            {
+                var userId = int.Parse(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier) ??
+                                       throw new InvalidOperationException());
+                var response = await profileService.GenerateProfileDescription(userId, description);
+
+                return Results.Ok(response);
+            })
+            .AllowAnonymous()
+            .WithOpenApi();
     }
 }

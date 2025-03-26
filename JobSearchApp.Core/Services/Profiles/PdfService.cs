@@ -24,6 +24,22 @@ public class PdfService : IPdfService
         await formFile.CopyToAsync(fileStream);
     }
 
+    public async Task<string> GetPdfAsAString(CandidateProfile profile)
+    {
+        var filePath = Path.Combine(_fileStoragePath, GetPdfFileIdentifier(profile));
+        if (!Directory.Exists(filePath))
+        {
+            return string.Empty;
+        }
+        var file = Directory.GetFiles(filePath).FirstOrDefault();
+        if (file == null)
+        {
+            return string.Empty;
+        }
+        
+        return await File.ReadAllTextAsync(file);
+    }
+
     public bool CheckIfResumeFolderInitialised(CandidateProfile profile)
     {
         var filePath = Path.Combine(_fileStoragePath, GetPdfFileIdentifier(profile));

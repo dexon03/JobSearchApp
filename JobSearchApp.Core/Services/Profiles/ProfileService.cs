@@ -4,14 +4,13 @@ using AutoMapper.QueryableExtensions;
 using JobSearchApp.Core.Contracts.Profiles;
 using JobSearchApp.Core.Exceptions;
 using JobSearchApp.Core.Models.Profiles;
-using JobSearchApp.Core.Models.Vacancies;
 using JobSearchApp.Data;
 using JobSearchApp.Data.Models.Profiles;
 using JobSearchApp.Data.Models.Profiles.Common;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Hybrid;
-using ZiggyCreatures.Caching.Fusion;
+using Microsoft.Extensions.AI;
+using Serilog;
 using Role = JobSearchApp.Data.Enums.Role;
 
 namespace JobSearchApp.Core.Services.Profiles;
@@ -19,10 +18,13 @@ namespace JobSearchApp.Core.Services.Profiles;
 public class ProfileService(
     AppDbContext db,
     IMapper mapper,
-    IFusionCache hybridCache,
+    IChatClient chatClient,
+    ILogger logger,
     IPdfService pdfService)
     : IProfileService
 {
+    private readonly ILogger _logger = logger.ForContext<ProfileService>();
+
     public async Task<List<GetCandidateProfileDto>> GetAllCandidatesProfiles(CandidateFilterParameters filter)
     {
         var profileQuery = db.CandidateProfile.AsQueryable();
@@ -193,7 +195,7 @@ public class ProfileService(
 
         var entity = db.Update(profile);
         await db.SaveChangesAsync();
-        
+
         var result = mapper.Map<GetRecruiterProfileDto>(entity.Entity);
 
         return result;
@@ -254,6 +256,48 @@ public class ProfileService(
                 db.RecruiterProfile.Remove(recruiterProfile);
             }
         }
+    }
+
+    public async Task<string> GenerateProfileDescription(int userId, AiDescriptionRequest request)
+    {
+        var userProfile = await db.CandidateProfile
+            .Where(cp => cp.UserId == userId)
+            .Include(candidateProfile => candidateProfile.ProfileSkills)
+                .ThenInclude(profileSkills => profileSkills.Skill)
+            .FirstOrDefaultAsync();
+        if (userProfile is null)
+        {
+            throw new ExceptionWithStatusCode("Profile not found", HttpStatusCode.BadRequest);
+        }
+
+        var description = string.IsNullOrEmpty(request.Description) ? userProfile.Description : request.Description;
+
+        var prompt = $"""
+                      I need to generate a description for my profile. 
+                      I will give you info about me, short description and my pdf resume if it exists(if pdf or/and description does not contain info for my description as candidate then ignore it).
+                      You will take that info and generate a description for me.
+                      !!!IMPORTANT!!!
+                      Give me only this description.
+                      !!!
+                      Here is info about me:
+                      Position title: {userProfile.PositionTitle}
+                      Work experience: {userProfile.WorkExperience.ToString()}
+                      My Skills: {string.Join(", ", userProfile.ProfileSkills.Select(ps => ps.Skill.Name))}
+                      Description: {description}
+                      """;
+        var message = new ChatMessage(ChatRole.User, prompt);
+        try
+        {
+            var fileContent = await pdfService.DownloadPdf(userProfile);
+            message.Contents.Add(new DataContent(fileContent, "application/pdf"));
+        }
+        catch (Exception e)
+        {
+            _logger.Error(e, "Error while downloading pdf for ai description, skip...");
+        }
+        
+        var response = await chatClient.GetResponseAsync(message);
+        return response.Text;
     }
 
     public async Task ActivateDeactivateProfile<T>(int id) where T : Profile<T>
