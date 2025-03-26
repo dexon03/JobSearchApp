@@ -10,8 +10,8 @@ import { TextField, Container, Button } from '@mui/material';
 import { environment } from '../../environment/environment';
 
 const ChatPage = () => {
-    const { token } = useToken();
     const { id } = useParams<{ id: string }>();
+    const { token } = useToken();
     const { data: previousMessages, isLoading } = useGetChatMessagesQuery(id);
 
     const chatContainerRef = useRef();
@@ -22,13 +22,14 @@ const ChatPage = () => {
     const sender = useAppSelector((state) => state.profile.candidateProfile || state.profile.recruiterProfile);
 
     useEffect(() => {
-        setMessages(previousMessages);
-        const chatCompanion = previousMessages && (previousMessages[0]?.sender.id === token?.userId ? previousMessages[0]?.receiver.id : previousMessages[0]?.sender.id);
+        setMessages(previousMessages!);
+        const chatCompanion = previousMessages && (previousMessages[0].isSender ? previousMessages[0]?.receiver.id : previousMessages[0]?.sender.id);
         setCompanionId(chatCompanion || '');
-        // const url = "http://localhost:5245/chatHub"
         const url = environment.apiUrl + '/chatHub'
         const connection = new HubConnectionBuilder()
-            .withUrl(url)
+            .withUrl(url, {
+                accessTokenFactory: () => token?.accessToken || ''
+            })
             .configureLogging(LogLevel.Information)
             .build();
         try {
@@ -69,28 +70,29 @@ const ChatPage = () => {
         if (!newMessage) return;
         const newMessageDto = {
             content: newMessage,
-            receiverId: companionId,
+            receiverId: parseInt(companionId),
             senderName: sender?.name + ' ' + sender?.surname,
-            chatId: id,
-            isRead: false,
+            chatId: parseInt(id!),
         };
 
-        // Send the message to the server using SignalR
-        connection.invoke('SendMessage', newMessageDto);
-
-        // Clear the input field
-        setNewMessage('');
+        connection.invoke('SendMessage', newMessageDto)
+            .then(() => {
+                console.log('Message sent');
+                setNewMessage('');
+            })
+            .catch(error => {
+                console.error('Error sending message:', error);
+            });
     };
 
 
     if (isLoading) {
         return <div>Loading...</div>
     }
-
     return (
-        <Container ref={chatContainerRef} className='pb-2' maxWidth="md" style={{ maxHeight: '80vh', overflowY: 'auto', overflowX: 'hidden', }}>
+        <Container component="div" ref={chatContainerRef} className='pb-2' maxWidth="md" style={{ maxHeight: '80vh', overflowY: 'auto', overflowX: 'hidden', }}>
             {messages && messages.map((msg) => (
-                <MessageComponent key={msg.id} message={msg} userId={token?.userId} />
+                <MessageComponent key={msg.id} message={msg} />
             ))}
 
             <div style={{ display: 'flex', marginTop: '8px' }}>

@@ -62,10 +62,10 @@ app.MapPost("api/account/register", async (RegisterDto model, UserManager<User> 
 });
 
 app.UseExceptionHandler();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseWebSockets();
 app.MapHub<ChatHub>("/api/chatHub");
 app.UseSerilogRequestLogging();
 app.Run();

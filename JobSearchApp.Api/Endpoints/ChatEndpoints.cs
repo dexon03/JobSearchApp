@@ -15,8 +15,8 @@ public static class ChatEndpoints
             .RequireAuthorization();
 
         chatGroup.MapGet("list", async (
-                [FromQuery]int page,
-                [FromQuery]int pageSize,
+                [FromQuery] int page,
+                [FromQuery] int pageSize,
                 ClaimsPrincipal claims,
                 UserManager<User> userManager,
                 IChatService chatService) =>
@@ -30,9 +30,12 @@ public static class ChatEndpoints
 
         chatGroup.MapGet("/messages/{chatId}", async (
                 int chatId,
+                ClaimsPrincipal claims,
+                UserManager<User> userManager,
                 IChatService chatService) =>
             {
-                var messages = await chatService.GetChatMessages(chatId);
+                var userId = int.Parse(userManager.GetUserId(claims)!);
+                var messages = await chatService.GetChatMessages(chatId, userId);
                 return Results.Ok(messages);
             })
             .WithName("GetChatMessages")

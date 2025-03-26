@@ -8,4 +8,5 @@ export interface MessageDto {
     receiver: MessageUserDto;
     chatId: string;
     isRead: boolean;
+    isSender: boolean;
 }

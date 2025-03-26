@@ -5,6 +5,6 @@ namespace JobSearchApp.Core.Contracts.Chats;
 public interface IChatService
 {
     ValueTask<List<ChatDto>> GetChatList(int userId, int pageNumber, int pageSize);
-    Task<List<MessageDto>> GetChatMessages(int chatId);
+    Task<List<MessageDto>> GetChatMessages(int chatId, int userId);
     Task CreateChat(CreateChatDto chatDto);
 }

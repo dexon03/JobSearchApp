@@ -18,14 +18,16 @@ public static class DependencyInjection
         AddIdentity(builder);
         builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddCore(builder.Configuration);
-        builder.Services.AddSignalR();
         builder.Services.AddExceptionHandler<ExceptionHandler>();
         builder.Services.AddProblemDetails();
 
         builder.Host.UseSerilog((context, loggerConfig) =>
             loggerConfig.ReadFrom.Configuration(context.Configuration));
 
-        builder.Services.AddSignalR();
+        builder.Services.AddSignalR(options => 
+        { 
+            options.EnableDetailedErrors = true; 
+        });
         builder.Services.AddCors(opt =>
             opt.AddDefaultPolicy(c => c.AllowAnyMethod().WithOrigins("http://localhost:5173").AllowAnyHeader().AllowCredentials()));
         
@@ -35,8 +37,27 @@ public static class DependencyInjection
     private static void AddIdentity(IHostApplicationBuilder app)
     {
         app.Services.AddAuthorization();
-        app.Services.AddAuthentication()
-            .AddBearerToken(IdentityConstants.BearerScheme);
+        
+        app.Services.AddAuthentication(IdentityConstants.BearerScheme)
+            .AddBearerToken(IdentityConstants.BearerScheme, options =>
+            {
+                options.Events = new Microsoft.AspNetCore.Authentication.BearerToken.BearerTokenEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/api/chatHub"))
+                        {
+                            context.Token = accessToken;
+                        }
+
+                        return Task.CompletedTask;
+                    }
+                };
+            });
+
 
         app.Services.AddAuthorizationBuilder()
             .AddPolicy(Role.Admin.ToString(), builder =>

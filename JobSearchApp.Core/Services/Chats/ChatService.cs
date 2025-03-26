@@ -25,15 +25,7 @@ public class ChatService(
             async ctx =>
             {
                 _logger.Information("Cache miss for {CacheKey}. Fetching from database...", cacheKey);
-
-                // var lastMessages = db.Messages
-                //     .Where(m => m.ReceiverId == userId || m.SenderId == userId)
-                //     .GroupBy(m => m.ChatId)
-                //     .Select(g => new
-                //     {
-                //         ChatId = g.Key,
-                //         LastMessage = g.OrderByDescending(m => m.TimeStamp).First()
-                //     });
+                
 
                 var chats = await db.Chats
                     .Where(c => db.Messages
@@ -60,14 +52,14 @@ public class ChatService(
         );
     }
 
-    public async Task<List<MessageDto>> GetChatMessages(int chatId)
+    public async Task<List<MessageDto>> GetChatMessages(int chatId, int userId)
     {
         var cacheKey = $"chat_messages_{chatId}";
         var cacheTag = $"chat_{chatId}";
 
         return await hybridCache.GetOrSetAsync(
             cacheKey,
-            async _ =>
+            async ct =>
             {
                 _logger.Information("Cache miss for {CacheKey}. Fetching messages from database...", cacheKey);
 
@@ -84,10 +76,11 @@ public class ChatService(
                         TimeStamp = m.TimeStamp,
                         Sender = m.Sender,
                         Receiver = m.Receiver,
-                        IsRead = m.IsRead
+                        IsRead = m.IsRead,
+                        IsSender = m.SenderId == userId
                     })
                     .OrderBy(m => m.TimeStamp)
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken: ct);
 
                 _logger.Information("Fetched {Count} messages for chat {ChatId}.", messages.Count, chatId);
                 return messages;

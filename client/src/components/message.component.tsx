@@ -1,7 +1,7 @@
 import { ListItem, ListItemAvatar, Avatar, ListItemText } from "@mui/material";
 import { MessageDto } from "../models/chat/message.dto";
 
-const MessageComponent = ({ message, userId }: { message: MessageDto, userId: string }) => {
+const MessageComponent = ({ message }: { message: MessageDto }) => {
 
     const time = message.timeStamp.split('T')[1].split('.')[0] + ' ' + message.timeStamp.split('T')[0];
     return (
@@ -11,7 +11,7 @@ const MessageComponent = ({ message, userId }: { message: MessageDto, userId: st
                 <Avatar>{message.sender.userName.charAt(0)}</Avatar>
             </ListItemAvatar>
             <ListItemText
-                primary={message.sender.id === userId ? "You" : message.sender.userName}
+                primary={message.isSender ? "You" : message.sender.userName}
                 secondary={
                     <>
                         <h5 style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>{message.content}</h5>

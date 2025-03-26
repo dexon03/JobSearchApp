@@ -3,10 +3,12 @@ using JobSearchApp.Core.Models.Chat;
 using JobSearchApp.Data;
 using JobSearchApp.Data.Models;
 using JobSearchApp.Data.Models.Chats;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace JobSearchApp.Api.Hubs;
 
+[Authorize]
 public class ChatHub(AppDbContext db) : Hub
 {
     public Task JoinChatGroup(string chatId)
@@ -33,7 +35,7 @@ public class ChatHub(AppDbContext db) : Hub
             SenderId = int.Parse(userId),
             ReceiverId = messageDto.ReceiverId,
             ChatId = messageDto.ChatId,
-            TimeStamp = DateTime.Now,
+            TimeStamp = DateTime.UtcNow,
         };
         db.Messages.Add(messageEntity);
         await db.SaveChangesAsync();
