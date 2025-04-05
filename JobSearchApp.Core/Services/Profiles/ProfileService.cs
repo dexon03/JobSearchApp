@@ -86,7 +86,10 @@ public class ProfileService(
 
     public async Task<GetRecruiterProfileDto> GetRecruiterProfile(int recruiterId)
     {
-        var profileEntity = await db.RecruiterProfile.FindAsync(recruiterId);
+        var profileEntity = await db.RecruiterProfile
+            .Include(x => x.Company)
+            .FirstOrDefaultAsync(x => x.Id == recruiterId);
+
         if (profileEntity == null)
         {
             throw new ExceptionWithStatusCode("Profile not found", HttpStatusCode.BadRequest);
@@ -263,7 +266,7 @@ public class ProfileService(
         var userProfile = await db.CandidateProfile
             .Where(cp => cp.UserId == userId)
             .Include(candidateProfile => candidateProfile.ProfileSkills)
-                .ThenInclude(profileSkills => profileSkills.Skill)
+            .ThenInclude(profileSkills => profileSkills.Skill)
             .FirstOrDefaultAsync();
         if (userProfile is null)
         {
@@ -295,7 +298,7 @@ public class ProfileService(
         {
             _logger.Error(e, "Error while downloading pdf for ai description, skip...");
         }
-        
+
         var response = await chatClient.GetResponseAsync(message);
         return response.Text;
     }

@@ -7,6 +7,7 @@ import { setRecruiterProfile } from '../app/slices/profile.slice';
 import { useAppDispatch } from '../hooks/redux.hooks';
 import { Company } from '../models/common/company.models';
 import { UpdateRecruiterProfileModel } from '../models/profile/updateRecruiterProfileModel';
+import { SelectChangeEvent } from '@mui/material/Select';
 
 const RecruiterProfileComponent = () => {
   const { data: profile, isLoading, refetch } = useGetUserRecruiterProfileQuery();
@@ -42,13 +43,18 @@ const RecruiterProfileComponent = () => {
       setDescription(profile.description || '');
       setPositionTitle(profile.positionTitle || '');
       setIsActive(profile.isActive);
-      setSelectedCompany(profile?.company?.id);
+      setSelectedCompany(profile?.company?.id ?? null);
       setCompanyName(profile?.company ? profile.company.name : '');
       setCompanyDescription(profile?.company ? profile.company.description : '');
-      onCompanyChanged(selectedCompany!);
       dispatch(setRecruiterProfile(profile));
     }
   }, [profile])
+
+  useEffect(() => {
+    if (selectedCompany && companies) {
+      onCompanyChanged(selectedCompany);
+    }
+  }, [selectedCompany, companies])
 
   const onCompanyChanged = (companyId: number) => {
     try {
@@ -62,8 +68,8 @@ const RecruiterProfileComponent = () => {
     }
   }
 
-  const handleCompanySelection = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedValue = e.target.value;
+  const handleCompanySelection = (event: SelectChangeEvent<number | "new">) => {
+    const selectedValue = event.target.value;
     if (selectedValue === 'new') {
       setIsNewCompany(true);
       setCompanyName('');
@@ -101,10 +107,6 @@ const RecruiterProfileComponent = () => {
       showSuccessToast("Company updated successfully");
     }
   };
-
-  useEffect(() => {
-    onCompanyChanged(selectedCompany!);
-  }, [selectedCompany])
 
   if (isLoading) {
     return <p>Loading...</p>;

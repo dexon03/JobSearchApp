@@ -16,7 +16,6 @@ import MenuIcon from '@mui/icons-material/Menu';
 import AdbIcon from '@mui/icons-material/Adb';
 import 'bootstrap/dist/css/bootstrap.css';
 import { NavLink } from "react-router-dom";
-import useToken from "../hooks/useToken.ts";
 import { Role } from "../models/common/role.enum.ts";
 import { useAppDispatch, useAppSelector } from "../hooks/redux.hooks.ts";
 import { RoleRoute } from "../models/role_routes/role.routes.model.ts";
@@ -38,7 +37,6 @@ declare module '@mui/material' {
 }
 
 export function HeaderComponent() {
-    const { token } = useToken();
     const dispatch = useAppDispatch();
     const { role } = useRole();
 
@@ -215,7 +213,7 @@ export function HeaderComponent() {
                                 onClose={handleCloseUserMenu}
                             >
                                 {
-                                    token?.role != Role[Role.Admin] ?
+                                    role != Role[Role.Admin] ?
                                         <NavLink to={'/profile'} className={'nav-link'}>
                                             <MenuItem onClick={handleCloseUserMenu}>
                                                 <Typography textAlign="center">Profile</Typography>

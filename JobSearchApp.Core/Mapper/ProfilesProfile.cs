@@ -34,11 +34,12 @@ public class ProfilesProfile : Profile
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Skill.Id))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Skill.Name));
 
-        
+
         CreateMap<CandidateProfile, GetCandidateProfileDto>()
             .ForMember(dest => dest.Locations, opt => opt.MapFrom(src => src.LocationProfiles))
             .ForMember(dest => dest.Skills, opt => opt.MapFrom(src => src.ProfileSkills));
 
-        CreateMap<RecruiterProfile, GetRecruiterProfileDto>();
+        CreateMap<RecruiterProfile, GetRecruiterProfileDto>()
+            .ForMember(x => x.Company, opt => opt.MapFrom(src => src.Company));
     }
 }
