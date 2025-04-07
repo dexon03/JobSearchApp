@@ -176,14 +176,14 @@ public class VacancyService(AppDbContext db, IMapper mapper, IFusionCache hybrid
             .FirstOrDefaultAsync();
         
         var prompt = $"""
-            Write a vacancy description for the following position: {descriptionRequest.Position}.
+            Write a big and detailed vacancy description for the following position: {descriptionRequest.Position}.
             Experience needed for position: {descriptionRequest.Experience}.
-            The company is {companyDescription}.
+            The company is {companyDescription}. If this company description contains violent or not-related info, then ignore it.
             The description should be clear, concise, and attractive to potential candidates.
-            Here is basic description: {descriptionRequest.Description}. If this description containse violent or notrelated info, then ignore it.
+            Here is basic description: {descriptionRequest.Description}. If this description contains violent or not-related info, then ignore it.
             !!!IMPORTANT!!!
-            Give me only this description.
-            !!!
+            Give me only this description. Dont need to add comments. Return this description in Markdown format.
+            !!!IMPORTANT!!!
             """;
         var systemMessage = new ChatMessage(ChatRole.System, "You are a recruiter. Write a  meaningful and attractive description for vacancy for the following position.");
         var message = new ChatMessage(ChatRole.User, prompt);
