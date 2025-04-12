@@ -82,7 +82,7 @@ public static class VacancyEndpoints
                     var userId = int.Parse(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier) ??
                                            throw new InvalidOperationException());
                     var result = await vacanciesService.GenerateVacancyDescription(userId, descriptionRequest);
-                    return Results.Ok(result);
+                    return Results.Ok(new { Description = result });
                 })
             .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Recruiter}" })
             .WithName("Ai Description")

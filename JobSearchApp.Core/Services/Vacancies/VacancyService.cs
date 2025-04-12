@@ -91,10 +91,9 @@ public class VacancyService(AppDbContext db, IMapper mapper, IFusionCache hybrid
         );
     }
 
-    public async Task<Vacancy> CreateVacancy(VacancyCreateDto vacancyDto)
+    public async Task<VacancyGetDto> CreateVacancy(VacancyCreateDto vacancyDto)
     {
         var vacancy = mapper.Map<Vacancy>(vacancyDto);
-        vacancy.CreatedAt = DateTime.UtcNow;
 
         var result = db.Vacancies.Add(vacancy);
         await db.SaveChangesAsync();
@@ -102,7 +101,9 @@ public class VacancyService(AppDbContext db, IMapper mapper, IFusionCache hybrid
         await hybridCache.RemoveByTagAsync("vacancies");
         await hybridCache.RemoveByTagAsync($"vacancies_recruiter_{vacancy.RecruiterId}");
         _log.Information("New vacancy {VacancyId} created. Cache invalidated.", vacancy.Id);
-        return result.Entity;
+
+        var mappedResult = mapper.Map<VacancyGetDto>(result.Entity);
+        return mappedResult;
     }
 
     public async Task<VacancyGetDto> UpdateVacancy(VacancyUpdateDto vacancy)

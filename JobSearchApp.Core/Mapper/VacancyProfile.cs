@@ -23,7 +23,8 @@ public class VacancyProfile : Profile
                         VacancyId = dest.Id,
                         LocationId = x.Id
                     })));
-        CreateMap<VacancyCreateDto, Vacancy>().ForMember(x => x.VacancySkill,
+        CreateMap<VacancyCreateDto, Vacancy>()
+            .ForMember(x => x.VacancySkill,
                 opt =>
                     opt.MapFrom((source, dest) => source.Skills.Select(x => new VacancySkill
                     {
@@ -36,7 +37,8 @@ public class VacancyProfile : Profile
                     {
                         Vacancy = dest,
                         LocationId = x.Id
-                    })));
+                    })))
+            .ForMember(x => x.CreatedAt, opt => opt.MapFrom(x => DateTime.UtcNow));
 
         CreateMap<Vacancy, VacancyGetDto>()
             .ForMember(dest => dest.Locations, opt => opt.MapFrom(src => src.LocationVacancy))
@@ -46,11 +48,13 @@ public class VacancyProfile : Profile
         CreateMap<LocationVacancy, LocationDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Location.Id))
             .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.Location.City))
-            .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Location.Country));
+            .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Location.Country))
+            .ReverseMap();
 
         CreateMap<VacancySkill, SkillDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Skill.Id))
-            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Skill.Name));
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Skill.Name))
+            .ReverseMap();
 
     }
 }

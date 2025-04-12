@@ -85,18 +85,11 @@ export const vacancyApi = createApi({
         }),
         generateVacancyDesciprtion: builder.query<GenerateVacancyDescription, GenerateVacancyDescriptionRequest>({
             query: (request: GenerateVacancyDescriptionRequest) => ({
-                url: '/vacancy/getDescription',
+                url: '/vacancy/AiDescription',
                 method: 'post',
                 data: request,
-                timeout: 120000,
+                timeout: 150000,
             }),
-            extraOptions: {
-                maxRetries: 3,
-                retryCondition: (err: any) => {
-                    return err.status === 504 || err.status === 408;
-                },
-                backoff: (attempt: number) => Math.min(1000 * (2 ** attempt), 30000),
-            },
         }),
     }),
 });

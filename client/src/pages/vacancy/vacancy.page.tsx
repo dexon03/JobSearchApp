@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom"
 import { useGetVacancyQuery } from "../../app/features/vacancy/vacancy.api";
 import { Card, CardContent, Typography, Chip, Box, TextField, Button } from "@mui/material";
 import { AttendanceMode } from "../../models/common/attendance.enum";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useLazyGetRecruiterProfileQuery } from "../../app/features/profile/profile.api";
 import { ChatCreateDto } from "../../models/chat/chat.create.dto";
 import { useAppSelector } from "../../hooks/redux.hooks";
@@ -10,6 +10,8 @@ import { Role } from "../../models/common/role.enum";
 import { useCreateChatMutation } from "../../app/features/chat/chat.api";
 import { showErrorToast } from "../../app/features/common/popup";
 import useRole from "../../hooks/useRole";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export function VacancyPage() {
     const { id } = useParams();
@@ -48,6 +50,26 @@ export function VacancyPage() {
 
     const locationString = [...new Set(vacancy?.locations?.map(location => `${location.city}, ${location.country}`))].join(', ');
 
+    // Process the description to remove markdown code block syntax if present
+    const processedDescription = useMemo(() => {
+        if (!vacancy?.description) return '';
+
+        let desc = vacancy.description;
+        // Check if the description starts with ```markdown or ```
+        if (desc.startsWith('```markdown') || desc.startsWith('```markdawn')) {
+            desc = desc.substring(desc.indexOf('\n') + 1);
+        } else if (desc.startsWith('```')) {
+            desc = desc.substring(3);
+        }
+
+        // Remove closing backticks if present
+        if (desc.endsWith('```')) {
+            desc = desc.substring(0, desc.length - 3);
+        }
+
+        return desc.trim();
+    }, [vacancy?.description]);
+
     return (
         vacancy &&
         <>
@@ -57,7 +79,23 @@ export function VacancyPage() {
                         <Typography variant="h5">{vacancy?.title}</Typography>
                         <Typography variant="h6">{vacancy?.positionTitle}</Typography>
                         <Typography variant="h6" style={{ marginTop: '1rem' }}>Description</Typography>
-                        <Typography variant="body1" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>{vacancy.description}</Typography>
+                        <div className="markdown-content" style={{ margin: '1rem 0' }}>
+                            <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
+                                components={{
+                                    p: ({ node, ...props }) => <p style={{ margin: '0.5rem 0' }} {...props} />,
+                                    ul: ({ node, ...props }) => <ul style={{ marginLeft: '1.5rem', listStyleType: 'disc' }} {...props} />,
+                                    ol: ({ node, ...props }) => <ol style={{ marginLeft: '1.5rem' }} {...props} />,
+                                    li: ({ node, ...props }) => <li style={{ margin: '0.25rem 0' }} {...props} />,
+                                    h1: ({ node, ...props }) => <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: '1rem 0' }} {...props} />,
+                                    h2: ({ node, ...props }) => <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: '1rem 0' }} {...props} />,
+                                    h3: ({ node, ...props }) => <h3 style={{ fontSize: '1.3rem', fontWeight: 'bold', margin: '0.75rem 0' }} {...props} />,
+                                    strong: (props) => <strong style={{ fontWeight: 'bold' }} {...props} />
+                                }}
+                            >
+                                {processedDescription}
+                            </ReactMarkdown>
+                        </div>
                         <Typography variant="h6" style={{ marginTop: '1rem' }}>Skills</Typography>
                         {vacancy.skills && vacancy.skills.map((skill) => (
                             <Chip label={skill.name} variant="outlined" style={{ margin: '0.5rem 0' }} />
@@ -83,7 +121,7 @@ export function VacancyPage() {
                     </CardContent>
                 </Card>
             </div >
-            {role == Role[Role.Candidate] ? (!isMessageSent ?
+            {role == Role.Candidate ? (!isMessageSent ?
                 <div style={{ marginTop: '1rem', width: '100%' }}>
                     <TextField
                         label="Type your message"

@@ -1,6 +1,7 @@
+import { Experience } from "./experience.enum";
 
 export interface GenerateVacancyDescriptionRequest {
-    title: string;
-    vacancyShortDescription: string;
-    companyDescription: string;
+    experience: Experience;
+    position: string;
+    description?: string;
 }
