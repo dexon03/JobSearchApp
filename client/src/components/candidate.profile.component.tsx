@@ -1,14 +1,17 @@
-import { Avatar, Box, Button, Container, InputLabel, MenuItem, OutlinedInput, Select, TextField, Typography } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { Avatar, Box, Button, CircularProgress, Container, Dialog, DialogActions, DialogContent, DialogTitle, InputLabel, MenuItem, OutlinedInput, Paper, Select, TextField, Typography } from '@mui/material';
+import { useEffect, useState, useMemo } from 'react';
 import { Document, Page } from 'react-pdf';
 import { Input } from "reactstrap";
-import { showErrorToast } from '../app/features/common/popup';
+import { showErrorToast, showSuccessToast, showWarningToast } from '../app/features/common/popup';
 import { useLazyDownloadResumeQuery, useUploadResumeMutation } from '../app/features/profile/candidateResume.api';
-import { useGetUserCandidateProfileQuery, useLazyGetProfileLocationQuery, useLazyGetProfileSkillsQuery, useQuerySubscriptionCandidate, useUpdateCandidateProfileMutation } from '../app/features/profile/profile.api';
+import { useGetUserCandidateProfileQuery, useLazyGetAiDescriptionQuery, useLazyGetProfileLocationQuery, useLazyGetProfileSkillsQuery, useQuerySubscriptionCandidate, useUpdateCandidateProfileMutation } from '../app/features/profile/profile.api';
 import { setCandidateProfile } from '../app/slices/profile.slice';
 import { useAppDispatch } from '../hooks/redux.hooks';
 import { CandidateProfile } from '../models/profile/candidate.profile.model';
 import { Experience } from '../models/profile/experience.enum';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface CandidateProfileState {
   name: string;
@@ -35,6 +38,7 @@ const CandidateProfileComponent = () => {
   const [updateCandidateProfile, { data: updatedProfile, error: updateError }] = useUpdateCandidateProfileMutation();
   const [uploadResume] = useUploadResumeMutation();
   const [downloadResume] = useLazyDownloadResumeQuery();
+  const [getAiDescription, { isLoading: isGenerating }] = useLazyGetAiDescriptionQuery();
 
   const [profileState, setProfileState] = useState<CandidateProfileState>({
     name: '',
@@ -52,6 +56,11 @@ const CandidateProfileComponent = () => {
     selectedLocations: [],
     selectedSkills: [],
   });
+
+  // AI dialog state
+  const [aiDialogOpen, setAiDialogOpen] = useState(false);
+  const [aiShortDescription, setAiShortDescription] = useState('');
+  const [aiGeneratedDescription, setAiGeneratedDescription] = useState('');
 
   const [selectedFile, setSelectedFile] = useState<Blob | null>(null);
   const [numPages, setNumPages] = useState<number>();
@@ -99,8 +108,6 @@ const CandidateProfileComponent = () => {
         phoneNumber: profileState.phoneNumber,
         dateBirth: profileState.dateOfBirth,
         description: profileState.description,
-        gitHubUrl: profileState.gitHubUrl,
-        linkedInUrl: profileState.linkedInUrl,
         positionTitle: profileState.positionTitle,
         isActive: profileState.isActive,
         desiredSalary: profileState.desiredSalary,
@@ -158,6 +165,62 @@ const CandidateProfileComponent = () => {
       [field]: e.target.value
     }));
   };
+
+  const handleOpenAiDialog = () => {
+    // Initialize dialog with current description
+    setAiShortDescription(profileState.description);
+    setAiGeneratedDescription('');
+    setAiDialogOpen(true);
+  };
+
+  const handleCloseAiDialog = () => {
+    setAiDialogOpen(false);
+  };
+
+  const handleGenerateWithAI = async () => {
+    if (!profileState.positionTitle) {
+      showWarningToast('Position title must be filled');
+      return;
+    }
+
+    const result = await getAiDescription({
+      description: aiShortDescription,
+      positionTitle: profileState.positionTitle,
+      experience: profileState.workExperience
+    });
+
+    if (result.data) {
+      setAiGeneratedDescription(result.data);
+    }
+  };
+
+  const handleUseAiDescription = () => {
+    setProfileState(prev => ({
+      ...prev,
+      description: aiGeneratedDescription
+    }));
+    setAiDialogOpen(false);
+  };
+
+  // Process the AI-generated description to display it properly in markdown
+  const processedDescription = useMemo(() => {
+    if (!aiGeneratedDescription) return '';
+
+    let desc = aiGeneratedDescription;
+    // Check if the description starts with ```markdown or ```
+    if (desc.startsWith('```markdown') || desc.startsWith('```markdawn')) {
+      desc = desc.substring(desc.indexOf('\n') + 1);
+    } else if (desc.startsWith('```')) {
+      desc = desc.substring(3);
+    }
+
+    // Remove closing backticks if present
+    if (desc.endsWith('```')) {
+      desc = desc.substring(0, desc.length - 3);
+    }
+
+    return desc.trim();
+  }, [aiGeneratedDescription]);
 
   return (
     profile &&
@@ -248,15 +311,34 @@ const CandidateProfileComponent = () => {
               </MenuItem>
             ))}
           </TextField>
-          <TextField
-            label="Description"
-            multiline
-            rows={4}
-            margin="normal"
-            fullWidth
-            value={profileState.description}
-            onChange={handleInputChange('description')}
-          />
+          <div style={{ position: 'relative' }}>
+            <TextField
+              label="Description"
+              multiline
+              rows={4}
+              margin="normal"
+              fullWidth
+              value={profileState.description}
+              onChange={handleInputChange('description')}
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleOpenAiDialog}
+              style={{
+                position: 'absolute',
+                top: '25px',
+                right: '10px',
+                minWidth: 'unset',
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%'
+              }}
+              title="Generate with AI"
+            >
+              <SmartToyIcon />
+            </Button>
+          </div>
           <InputLabel>Locations</InputLabel>
           <Select
             multiple
@@ -319,6 +401,109 @@ const CandidateProfileComponent = () => {
           </Box>
         </form>
       </div>
+
+      {/* AI Dialog */}
+      <Dialog open={aiDialogOpen} onClose={handleCloseAiDialog} fullWidth maxWidth="md">
+        <DialogTitle>AI Profile Description Generator</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Position Title"
+            fullWidth
+            variant="outlined"
+            value={profileState.positionTitle}
+            onChange={handleInputChange('positionTitle')}
+          />
+          <TextField
+            select
+            label="Work Experience"
+            margin="normal"
+            fullWidth
+            value={profileState.workExperience}
+            onChange={(e) => {
+              setProfileState(prev => ({
+                ...prev,
+                workExperience: Number(e.target.value) as Experience
+              }))
+            }}
+          >
+            {Object.values(Experience).filter((v) => isNaN(Number(v))).map((value) => (
+              <MenuItem key={value} value={Experience[value as keyof typeof Experience]}>
+                {value}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            margin="dense"
+            label="Short Description"
+            fullWidth
+            multiline
+            rows={3}
+            variant="outlined"
+            value={aiShortDescription}
+            onChange={(e) => setAiShortDescription(e.target.value)}
+            helperText="Provide information about yourself that the AI can use to enhance"
+          />
+          <Button
+            fullWidth
+            variant="contained"
+            color="primary"
+            onClick={handleGenerateWithAI}
+            disabled={isGenerating}
+            style={{ marginTop: '16px' }}
+            startIcon={isGenerating ? <CircularProgress size={24} color="inherit" /> : <SmartToyIcon />}
+          >
+            {isGenerating ? 'Generating...' : 'Generate Description'}
+          </Button>
+
+          {aiGeneratedDescription && (
+            <>
+              <TextField
+                margin="dense"
+                label="Edit AI Generated Description"
+                fullWidth
+                multiline
+                rows={6}
+                variant="outlined"
+                value={aiGeneratedDescription}
+                onChange={(e) => setAiGeneratedDescription(e.target.value)}
+                sx={{ marginTop: '16px' }}
+              />
+              <Paper
+                elevation={1}
+                sx={{
+                  marginTop: '16px',
+                  padding: '16px',
+                  maxHeight: '300px',
+                  overflow: 'auto',
+                  bgcolor: '#f5f5f5'
+                }}
+              >
+                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  Preview:
+                </Typography>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {processedDescription}
+                </ReactMarkdown>
+              </Paper>
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseAiDialog} color="primary">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleUseAiDescription}
+            color="primary"
+            disabled={!aiGeneratedDescription}
+            variant="contained"
+          >
+            Use This Description
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }

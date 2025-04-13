@@ -28,11 +28,13 @@ public class ProfilesProfile : Profile
         CreateMap<LocationProfile, LocationDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Location.Id))
             .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.Location.City))
-            .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Location.Country));
+            .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Location.Country))
+            .ReverseMap();
 
         CreateMap<ProfileSkills, SkillDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Skill.Id))
-            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Skill.Name));
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Skill.Name))
+            .ReverseMap();
 
 
         CreateMap<CandidateProfile, GetCandidateProfileDto>()

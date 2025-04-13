@@ -164,7 +164,10 @@ public class ProfileService(
 
     public async Task<GetCandidateProfileDto> UpdateCandidateProfile(CandidateProfileUpdateDto profileDto)
     {
-        var profile = await db.CandidateProfile.FindAsync(profileDto.Id);
+        var profile = await db.CandidateProfile
+            .Include(x => x.ProfileSkills)
+            .Include(x => x.LocationProfiles)
+            .FirstOrDefaultAsync(x => x.Id == profileDto.Id);
         if (profile == null)
         {
             throw new ExceptionWithStatusCode("Profile that you trying to update, not exist",
@@ -276,15 +279,15 @@ public class ProfileService(
         var description = string.IsNullOrEmpty(request.Description) ? userProfile.Description : request.Description;
 
         var prompt = $"""
-                      I need to generate a description for my profile. 
+                      I need to generate big and detailed description for my profile. 
                       I will give you info about me, short description and my pdf resume if it exists(if pdf or/and description does not contain info for my description as candidate then ignore it).
                       You will take that info and generate a description for me.
                       !!!IMPORTANT!!!
-                      Give me only this description.
+                      Give me only this description in Markdown format.Dont need to add any comments or explanations.
                       !!!
                       Here is info about me:
-                      Position title: {userProfile.PositionTitle}
-                      Work experience: {userProfile.WorkExperience.ToString()}
+                      Position title: {request.PositionTitle}
+                      Work experience: {request.Experience.ToString()}
                       My Skills: {string.Join(", ", userProfile.ProfileSkills.Select(ps => ps.Skill.Name))}
                       Description: {description}
                       """;

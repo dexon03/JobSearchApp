@@ -7,6 +7,8 @@ import { SkillDto } from "../../../models/common/skill.dto";
 import { CandidateProfile } from "../../../models/profile/candidate.profile.model";
 import { RecruiterProfile } from "../../../models/profile/recruiter.profile.model";
 import { UpdateRecruiterProfileModel } from "../../../models/profile/updateRecruiterProfileModel";
+import { GenerateProfileDescriptionRequest } from "../../../models/profile/generateProfileDescriptionRequest";
+import { GenerateProfileDescriptionResponse } from "../../../models/profile/generateProfileDescriptionResponse";
 
 export const profileApi = createApi({
     reducerPath: 'profileApi',
@@ -69,6 +71,13 @@ export const profileApi = createApi({
                 method: 'get'
             }),
         }),
+        getAiDescription: builder.query<GenerateProfileDescriptionResponse, GenerateProfileDescriptionRequest>({
+            query: (request: GenerateProfileDescriptionRequest) => ({
+                url: `/profile/AiDescription`,
+                method: 'post',
+                data: request
+            }),
+        })
     }),
 });
 
@@ -82,7 +91,8 @@ export const
         useUpdateCandidateProfileMutation,
         useUpdateRecruiterProfileMutation,
         useLazyGetProfileSkillsQuery,
-        useLazyGetProfileLocationQuery
+        useLazyGetProfileLocationQuery,
+        useLazyGetAiDescriptionQuery,
     } = profileApi;
 
 export const { useQuerySubscription: useQuerySubscriptionCandidate } = profileApi.endpoints.getUserCandidateProfile;
