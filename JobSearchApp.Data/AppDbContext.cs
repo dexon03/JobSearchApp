@@ -21,6 +21,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     
     public DbSet<LocationVacancy> LocationVacancy { get; set; }
     public DbSet<VacancySkill> VacancySkill { get; set; }
+    public DbSet<VacancyUser> VacancyUsers { get; set; } 
 
     public DbSet<CandidateProfile> CandidateProfile { get; set; }
     public DbSet<RecruiterProfile> RecruiterProfile { get; set; }
@@ -112,9 +113,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
                 .WithMany(c => c.LocationVacancy)
                 .HasForeignKey(vs => vs.VacancyId);
         });
-
         
-
         builder.Entity<Message>(x =>
         {
             x.HasOne(t => t.Sender)

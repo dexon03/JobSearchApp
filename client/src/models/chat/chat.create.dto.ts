@@ -1,5 +1,5 @@
 export interface ChatCreateDto {
-    senderName: string;
+    vacancyId: string;
     receiverId: string;
     receiverName: string;
     message: string;

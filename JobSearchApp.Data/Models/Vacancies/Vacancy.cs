@@ -24,4 +24,5 @@ public class Vacancy
     public Company? Company { get; set; }
     public virtual ICollection<LocationVacancy> LocationVacancy { get; set; } = [];
     public virtual ICollection<VacancySkill> VacancySkill { get; set; } = [];
+    public virtual ICollection<VacancyUser> VacancyUsers { get; set; } = [];
 }

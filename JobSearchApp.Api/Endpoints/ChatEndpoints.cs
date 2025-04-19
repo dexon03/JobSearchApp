@@ -47,8 +47,8 @@ public static class ChatEndpoints
                 UserManager<User> userManager,
                 IChatService chatService) =>
             {
-                var userId = int.Parse(userManager.GetUserId(claims)!);
-                chatDto.SenderId = userId;
+                var user = await userManager.GetUserAsync(claims)!;
+                chatDto.Sender = user!;
                 await chatService.CreateChat(chatDto);
                 return Results.Ok();
             })

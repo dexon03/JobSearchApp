@@ -1,15 +1,20 @@
 using JobSearchApp.Core.Contracts.Chats;
 using JobSearchApp.Core.Models.Chat;
 using JobSearchApp.Data;
+using JobSearchApp.Data.Models;
 using JobSearchApp.Data.Models.Chats;
+using JobSearchApp.Data.Models.Common;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using ZiggyCreatures.Caching.Fusion;
+using Role = JobSearchApp.Data.Enums.Role;
 
 namespace JobSearchApp.Core.Services.Chats;
 
 public class ChatService(
     AppDbContext db,
+    UserManager<User> userManager,
     IFusionCache hybridCache,
     ILogger logger) : IChatService
 {
@@ -93,8 +98,8 @@ public class ChatService(
     public async Task CreateChat(CreateChatDto chatDto)
     {
         var existentChat = await db.Messages
-            .FirstOrDefaultAsync(m => (m.ReceiverId == chatDto.ReceiverId && m.SenderId == chatDto.SenderId)
-                                      || (m.ReceiverId == chatDto.SenderId && m.SenderId == chatDto.ReceiverId));
+            .FirstOrDefaultAsync(m => (m.ReceiverId == chatDto.ReceiverId && m.SenderId == chatDto.Sender.Id)
+                                      || (m.ReceiverId == chatDto.Sender.Id && m.SenderId == chatDto.ReceiverId));
 
         if (existentChat is not null)
         {
@@ -103,7 +108,7 @@ public class ChatService(
                 ChatId = existentChat.ChatId,
                 Content = chatDto.Message,
                 TimeStamp = DateTime.UtcNow,
-                SenderId = chatDto.SenderId.Value,
+                SenderId = chatDto.Sender.Id,
                 ReceiverId = chatDto.ReceiverId,
                 IsRead = false
             };
@@ -111,13 +116,31 @@ public class ChatService(
             await db.SaveChangesAsync();
 
             _logger.Information("New message added to chat {ChatId} by user {SenderId}.", existentChat.ChatId,
-                chatDto.SenderId);
+                chatDto.Sender.Id);
 
-            await InvalidateChatCacheAsync(existentChat.ChatId, chatDto.SenderId.Value, chatDto.ReceiverId);
+            await InvalidateChatCacheAsync(existentChat.ChatId, chatDto.Sender.Id, chatDto.ReceiverId);
         }
         else
         {
             await CreateNewChatAndAddMessage(chatDto);
+        }
+
+        await AddApplication(chatDto);
+    }
+
+    private async Task AddApplication(CreateChatDto chatDto)
+    {
+        var isCandidate = await userManager.IsInRoleAsync(chatDto.Sender, Role.Candidate.ToString());
+        if (isCandidate)
+        {
+            var application = new VacancyUser
+            {
+                UserId = chatDto.Sender.Id,
+                VacancyId = chatDto.VacancyId,
+                CreatedAt = DateTime.UtcNow,
+            };
+            db.VacancyUsers.Add(application);
+            await db.SaveChangesAsync();
         }
     }
 
@@ -125,7 +148,7 @@ public class ChatService(
     {
         var chat = new Chat
         {
-            Name = $"{chatDto.SenderName} / {chatDto.ReceiverName}",
+            Name = $"{chatDto.Sender.FirstName + ' ' + chatDto.Sender.LastName} / {chatDto.ReceiverName}",
         };
 
         var message = new Message
@@ -133,7 +156,7 @@ public class ChatService(
             Chat = chat,
             Content = chatDto.Message,
             TimeStamp = DateTime.UtcNow,
-            SenderId = chatDto.SenderId.Value,
+            SenderId = chatDto.Sender.Id,
             ReceiverId = chatDto.ReceiverId,
             IsRead = false
         };
@@ -142,10 +165,10 @@ public class ChatService(
         db.Messages.Add(message);
         await db.SaveChangesAsync();
 
-        _logger.Information("Created new chat between {SenderId} and {ReceiverId}.", chatDto.SenderId,
+        _logger.Information("Created new chat between {SenderId} and {ReceiverId}.", chatDto.Sender.Id,
             chatDto.ReceiverId);
 
-        await InvalidateChatCacheAsync(null, chatDto.SenderId.Value, chatDto.ReceiverId);
+        await InvalidateChatCacheAsync(null, chatDto.Sender.Id, chatDto.ReceiverId);
     }
 
     private async Task InvalidateChatCacheAsync(int? chatId, int senderId, int receiverId)

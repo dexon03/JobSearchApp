@@ -32,7 +32,8 @@ public static class DependencyInjection
         builder.Services.AddCors(opt =>
             opt.AddDefaultPolicy(c => c.AllowAnyMethod().WithOrigins("http://localhost:5173").AllowAnyHeader().AllowCredentials()));
         
-        builder.Services.AddChatClient(new OllamaChatClient(new Uri("http://localhost:11434"), "gemma3:1b"));
+        builder.Services.AddChatClient(new OllamaChatClient(new Uri("http://localhost:11434"), "llama3.2:1b"));
+        builder.Services.AddEmbeddingGenerator(new OllamaEmbeddingGenerator(new Uri("http://localhost:11434"), "nomic-embed-text"));
         
         return builder;
     }
