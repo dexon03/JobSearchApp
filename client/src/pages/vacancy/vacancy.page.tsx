@@ -32,7 +32,7 @@ export function VacancyPage() {
         const messageToSend = message + `\n\n${currentPageUrl}`;
         if (candidate && !recruiter.isError) {
             const request = {
-                senderName: candidate?.name + ' ' + candidate?.surname,
+                vacancyId: id,
                 receiverId: recruiter?.data?.userId,
                 receiverName: recruiter?.data?.name + ' ' + recruiter?.data?.surname,
                 message: messageToSend,
