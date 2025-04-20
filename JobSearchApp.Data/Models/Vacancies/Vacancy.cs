@@ -14,14 +14,15 @@ public class Vacancy
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
-    
+
     public int CategoryId { get; set; }
     public int CompanyId { get; set; }
     public int RecruiterId { get; set; }
-    
+
     public User Recruiter { get; set; }
     public Category? Category { get; set; }
     public Company? Company { get; set; }
+    public float[] Embedding { get; set; }
     public virtual ICollection<LocationVacancy> LocationVacancy { get; set; } = [];
     public virtual ICollection<VacancySkill> VacancySkill { get; set; } = [];
     public virtual ICollection<VacancyUser> VacancyUsers { get; set; } = [];
