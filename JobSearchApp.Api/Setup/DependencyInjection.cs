@@ -1,11 +1,9 @@
 using JobSearchApp.Core;
 using JobSearchApp.Data;
 using JobSearchApp.Data.Models;
+using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.ResponseCompression;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
 using Serilog;
 using Role = JobSearchApp.Data.Enums.Role;
@@ -34,7 +32,6 @@ public static class DependencyInjection
         
         builder.Services.AddChatClient(new OllamaChatClient(new Uri("http://localhost:11434"), "llama3.2:1b"));
         builder.Services.AddEmbeddingGenerator(new OllamaEmbeddingGenerator(new Uri("http://localhost:11434"), "nomic-embed-text"));
-        
         return builder;
     }
 
@@ -45,7 +42,7 @@ public static class DependencyInjection
         app.Services.AddAuthentication(IdentityConstants.BearerScheme)
             .AddBearerToken(IdentityConstants.BearerScheme, options =>
             {
-                options.Events = new Microsoft.AspNetCore.Authentication.BearerToken.BearerTokenEvents
+                options.Events = new BearerTokenEvents
                 {
                     OnMessageReceived = context =>
                     {

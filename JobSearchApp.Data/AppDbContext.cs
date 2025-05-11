@@ -34,6 +34,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        builder.HasPostgresExtension("vector");
 
         SeedIdentityModels(builder);
         SeedVacanciesModels(builder);

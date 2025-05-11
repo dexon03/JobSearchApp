@@ -1,6 +1,7 @@
 using AutoMapper;
 using JobSearchApp.Core.Models.Vacancies;
 using JobSearchApp.Data.Models.Vacancies;
+using Pgvector;
 
 namespace JobSearchApp.Core.Mapper;
 
@@ -22,7 +23,8 @@ public class VacancyProfile : Profile
                     {
                         VacancyId = dest.Id,
                         LocationId = x.Id
-                    })));
+                    })))
+            .ForMember(x => x.Embedding, opt => opt.MapFrom<Vector?>(x => null));
         CreateMap<VacancyCreateDto, Vacancy>()
             .ForMember(x => x.VacancySkill,
                 opt =>

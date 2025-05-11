@@ -11,7 +11,7 @@ public static class DependencyInjection
     public static void AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<AppDbContext>(opt =>
-            opt.UseNpgsql(configuration.GetConnectionString("PostgresConnection"))
+            opt.UseNpgsql(configuration.GetConnectionString("PostgresConnection"), o => o.UseVector())
                 .EnableSensitiveDataLogging()
                 .LogTo(Log.Logger.Information, LogLevel.Information));
     }

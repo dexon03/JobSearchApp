@@ -16,7 +16,7 @@
 #      - keys:/app/keys
   
   jobsearchapp.db:
-    image: postgres
+    image: pgvector/pgvector:0.8.0-pg17
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -25,6 +25,7 @@
       - "5432:5432"
     volumes:
       - jobsearchapp-db:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d:ro
   
   jobsearchapp.rabbitmq:
     image: "rabbitmq:management"

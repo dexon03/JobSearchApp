@@ -1,5 +1,6 @@
 ﻿using JobSearchApp.Data.Enums;
 using JobSearchApp.Data.Models.Common;
+using Pgvector;
 
 namespace JobSearchApp.Data.Models.Vacancies;
 
@@ -22,7 +23,7 @@ public class Vacancy
     public User Recruiter { get; set; }
     public Category? Category { get; set; }
     public Company? Company { get; set; }
-    public float[] Embedding { get; set; }
+    public Vector? Embedding { get; set; }
     public virtual ICollection<LocationVacancy> LocationVacancy { get; set; } = [];
     public virtual ICollection<VacancySkill> VacancySkill { get; set; } = [];
     public virtual ICollection<VacancyUser> VacancyUsers { get; set; } = [];

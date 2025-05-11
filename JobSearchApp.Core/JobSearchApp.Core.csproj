@@ -27,8 +27,4 @@
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Contracts\Common\" />
-    </ItemGroup>
-
 </Project>

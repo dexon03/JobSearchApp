@@ -1,8 +1,10 @@
 using System.Reflection;
 using FluentValidation;
 using JobSearchApp.Core.Contracts.Chats;
+using JobSearchApp.Core.Contracts.Common;
 using JobSearchApp.Core.Contracts.Profiles;
 using JobSearchApp.Core.Contracts.Vacancies;
+using JobSearchApp.Core.Services;
 using JobSearchApp.Core.Services.Chats;
 using JobSearchApp.Core.Services.Profiles;
 using JobSearchApp.Core.Services.Vacancies;
@@ -69,5 +71,8 @@ public static class DependencyInjection
 
         //Chat
         services.AddScoped<IChatService, ChatService>();
+
+        //Common
+        services.AddScoped<IEmbeddingService, EmbeddingService>();
     }
 }

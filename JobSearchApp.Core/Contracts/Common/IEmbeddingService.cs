@@ -1,0 +1,6 @@
+﻿namespace JobSearchApp.Core.Contracts.Common;
+
+public interface IEmbeddingService
+{
+    Task GenerateEmbeddingForVacancy(int id);
+}

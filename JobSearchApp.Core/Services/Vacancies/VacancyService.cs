@@ -3,10 +3,11 @@ using System.Net;
 using AutoMapper;
 using JobSearchApp.Core.Contracts.Vacancies;
 using JobSearchApp.Core.Exceptions;
+using JobSearchApp.Core.MessageContracts;
 using JobSearchApp.Core.Models.Vacancies;
 using JobSearchApp.Data;
-using JobSearchApp.Data.Models.Common;
 using JobSearchApp.Data.Models.Vacancies;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
 using Serilog;
@@ -14,7 +15,13 @@ using ZiggyCreatures.Caching.Fusion;
 
 namespace JobSearchApp.Core.Services.Vacancies;
 
-public class VacancyService(AppDbContext db, IMapper mapper, IFusionCache hybridCache, ILogger logger, IChatClient chatClient)
+public class VacancyService(
+    AppDbContext db,
+    IMapper mapper,
+    IFusionCache hybridCache,
+    ILogger logger,
+    IChatClient chatClient,
+    IPublishEndpoint publishEndpoint)
     : IVacancyService
 {
     private readonly ILogger _log = logger.ForContext<VacancyService>();
@@ -98,6 +105,11 @@ public class VacancyService(AppDbContext db, IMapper mapper, IFusionCache hybrid
         var result = db.Vacancies.Add(vacancy);
         await db.SaveChangesAsync();
 
+        await publishEndpoint.Publish(new VacancyCreatedEvent
+        {
+            Id = result.Entity.Id
+        });
+
         await hybridCache.RemoveByTagAsync("vacancies");
         await hybridCache.RemoveByTagAsync($"vacancies_recruiter_{vacancy.RecruiterId}");
         _log.Information("New vacancy {VacancyId} created. Cache invalidated.", vacancy.Id);
@@ -121,9 +133,14 @@ public class VacancyService(AppDbContext db, IMapper mapper, IFusionCache hybrid
 
         mapper.Map(vacancy, vacancyEntity);
         vacancyEntity.UpdatedAt = DateTime.UtcNow;
-
+        
         var result = db.Update(vacancyEntity);
         await db.SaveChangesAsync();
+        
+        await publishEndpoint.Publish(new VacancyUpdatedEvent
+        {
+            Id = result.Entity.Id
+        });
 
         await hybridCache.RemoveByTagAsync($"vacancy_{vacancy.Id}");
         await hybridCache.RemoveByTagAsync("vacancies");
