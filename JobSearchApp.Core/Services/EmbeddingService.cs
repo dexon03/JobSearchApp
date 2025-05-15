@@ -1,5 +1,6 @@
 ﻿using JobSearchApp.Core.Contracts.Common;
 using JobSearchApp.Data;
+using JobSearchApp.Data.Models.Profiles;
 using JobSearchApp.Data.Models.Vacancies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
@@ -46,7 +47,31 @@ public class EmbeddingService : IEmbeddingService
         await _dbContext.SaveChangesAsync();
         _logger.Information("Embedding generated for vacancy {VacancyId}", vacancy.Id);
     }
-    
+
+    public async Task GenerateEmbeddingForCandidate(int id)
+    {
+        var candidateProfile = await _dbContext.CandidateProfile
+            .Include(x => x.ProfileSkills).ThenInclude(x => x.Skill)
+            .Include(x => x.LocationProfiles).ThenInclude(x => x.Location)
+            .AsSplitQuery()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (candidateProfile is null)
+        {
+            _logger.Error("Candidate profile with id {CandidateId} not found", id);
+            return;
+        }
+        
+        _logger.Information("Generating embedding for candidate profile {CandidateId}", candidateProfile.Id);
+        await GenerateEmbedding(candidateProfile);
+        
+        _dbContext.Update(candidateProfile);
+        await _dbContext.SaveChangesAsync();
+        
+        _logger.Information("Embedding generated for candidate profile {CandidateId}", candidateProfile.Id);
+    }
+
     private async Task GenerateEmbedding(Vacancy vacancy)
     {
         var skills = vacancy.VacancySkill.Select(x => x.Skill.Name);
@@ -65,5 +90,24 @@ public class EmbeddingService : IEmbeddingService
 
         var embedding = await _embeddingGenerator.GenerateAsync([prompt]);
         vacancy.Embedding = new Vector(embedding.Single().Vector);
+    }
+
+    private async Task GenerateEmbedding(CandidateProfile profile)
+    {
+        var skills = profile.ProfileSkills.Select(x => x.Skill.Name);
+        var locations = profile.LocationProfiles.Select(x => $"{x.Location.Country}_{x.Location.City}");
+        string prompt = $"""
+                         Title: {profile.PositionTitle}
+                         Description: {profile.Description}
+
+                         Experience: {profile.WorkExperience}
+                         AttendanceMode: {profile.Attendance}
+
+                         Skills: {skills}
+                         Locations: {locations}
+                         """;
+
+        var embedding = await _embeddingGenerator.GenerateAsync([prompt]);
+        profile.Embedding = new Vector(embedding.Single().Vector);
     }
 }

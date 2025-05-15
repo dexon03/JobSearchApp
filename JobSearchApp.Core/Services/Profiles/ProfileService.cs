@@ -3,10 +3,13 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using JobSearchApp.Core.Contracts.Profiles;
 using JobSearchApp.Core.Exceptions;
+using JobSearchApp.Core.MessageContracts;
 using JobSearchApp.Core.Models.Profiles;
 using JobSearchApp.Data;
 using JobSearchApp.Data.Models.Profiles;
 using JobSearchApp.Data.Models.Profiles.Common;
+using MassTransit;
+using MassTransit.Testing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
@@ -20,7 +23,8 @@ public class ProfileService(
     IMapper mapper,
     IChatClient chatClient,
     ILogger logger,
-    IPdfService pdfService)
+    IPdfService pdfService,
+    IPublishEndpoint publishEndpoint)
     : IProfileService
 {
     private readonly ILogger _logger = logger.ForContext<ProfileService>();
@@ -183,6 +187,11 @@ public class ProfileService(
 
         var entityEntry = db.Update(profile);
         await db.SaveChangesAsync();
+
+        await publishEndpoint.Publish(new CandidateProfileUpdatedEvent
+        {
+            ProfileId = entityEntry.Entity.Id
+        });
 
         var result = mapper.Map<GetCandidateProfileDto>(entityEntry.Entity);
         return result;

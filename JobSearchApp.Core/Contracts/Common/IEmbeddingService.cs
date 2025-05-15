@@ -3,4 +3,5 @@
 public interface IEmbeddingService
 {
     Task GenerateEmbeddingForVacancy(int id);
+    Task GenerateEmbeddingForCandidate(int id);
 }
