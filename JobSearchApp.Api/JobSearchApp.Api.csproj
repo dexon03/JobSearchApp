@@ -35,4 +35,9 @@
       <ProjectReference Include="..\JobSearchApp.Core\JobSearchApp.Core.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="keys\" />
+      <Folder Include="PdfResumesFiles\" />
+    </ItemGroup>
+
 </Project>

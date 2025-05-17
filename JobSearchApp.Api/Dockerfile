@@ -1,9 +1,9 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 WORKDIR /app
-RUN mkdir -p /keys && chown -R $APP_UID:$APP_UID /keys
+RUN mkdir -p /PdfResumesFiles && chown -R $APP_UID:$APP_UID /PdfResumesFiles
+USER $APP_UID
 EXPOSE 8080
 EXPOSE 8081
-USER $APP_UID
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release

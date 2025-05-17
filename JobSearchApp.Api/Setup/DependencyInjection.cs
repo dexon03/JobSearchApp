@@ -30,8 +30,11 @@ public static class DependencyInjection
         builder.Services.AddCors(opt =>
             opt.AddDefaultPolicy(c => c.AllowAnyMethod().WithOrigins("http://localhost:5173").AllowAnyHeader().AllowCredentials()));
         
-        builder.Services.AddChatClient(new OllamaChatClient(new Uri("http://localhost:11434"), "llama3.2:1b"));
-        builder.Services.AddEmbeddingGenerator(new OllamaEmbeddingGenerator(new Uri("http://localhost:11434"), "nomic-embed-text"));
+        // http://host.docker.internal:11434
+        
+        var ollamaHost = builder.Configuration["Urls:Ollama"];
+        builder.Services.AddChatClient(new OllamaChatClient(new Uri(ollamaHost!), "llama3.2:1b"));
+        builder.Services.AddEmbeddingGenerator(new OllamaEmbeddingGenerator(new Uri(ollamaHost!), "nomic-embed-text"));
         return builder;
     }
 
@@ -80,10 +83,10 @@ public static class DependencyInjection
             options.Lockout.MaxFailedAccessAttempts = 5;
             options.Lockout.AllowedForNewUsers = true;
         });
-        
+
         app.Services.AddDataProtection()
-            .PersistKeysToFileSystem(new DirectoryInfo("/keys"))
-            .SetApplicationName("JobSearchApp"); 
+            .PersistKeysToDbContext<AppDbContext>();
+        // .SetApplicationName("JobSearchApp"); 
 
 
     }

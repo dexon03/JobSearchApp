@@ -1,19 +1,21 @@
 ﻿services:
-#  jobsearchapp.api:
-#    image: jobsearchapp.api
-#    build:
-#      context: .
-#      dockerfile: JobSearchApp.Api/Dockerfile
-#    ports:
-#      - "5051:8080"
-#    depends_on:
-#      - jobsearchapp.db
-#      - jobsearchapp.rabbitmq
-#      - jobsearchapp.redis
-#    environment:
-#      - ASPNETCORE_ENVIRONMENT=Docker
-#    volumes:
-#      - keys:/app/keys
+  jobsearchapp.api:
+    image: jobsearchapp.api
+    build:
+      context: .
+      dockerfile: JobSearchApp.Api/Dockerfile
+    ports:
+      - "5050:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - jobsearchapp.db
+      - jobsearchapp.rabbitmq
+      - jobsearchapp.redis
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+    volumes:
+      - ./PdfResumesFiles:/app/PdfResumesFiles
   
   jobsearchapp.db:
     image: pgvector/pgvector:0.8.0-pg17
@@ -55,4 +57,3 @@ volumes:
   rabbitmq-data:
   rabbitmq-logs:
   redis-data:
-  keys:
