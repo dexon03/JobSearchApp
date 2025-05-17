@@ -1,5 +1,5 @@
 import { Button, Card, CardContent, Chip, TextField, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Document, Page } from 'react-pdf';
 import { useParams } from "react-router-dom";
 import { useCreateChatMutation } from "../../app/features/chat/chat.api";
@@ -10,6 +10,8 @@ import { useAppSelector } from "../../hooks/redux.hooks";
 import useRole from "../../hooks/useRole";
 import { ChatCreateDto } from "../../models/chat/chat.create.dto";
 import { Role } from "../../models/common/role.enum";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from 'remark-gfm';
 
 export function CandidatePage() {
     const { id } = useParams();
@@ -23,6 +25,22 @@ export function CandidatePage() {
     const [numPages, setNumPages] = useState<number>();
     const recruiter = useAppSelector(state => state.profile.recruiterProfile);
 
+    const processedDescription = useMemo(() => {
+        if (!profile?.description) return '';
+
+        let desc = profile.description;
+        if (desc.startsWith('```markdown') || desc.startsWith('```markdawn')) {
+            desc = desc.substring(desc.indexOf('\n') + 1);
+        } else if (desc.startsWith('```')) {
+            desc = desc.substring(3);
+        }
+
+        if (desc.endsWith('```')) {
+            desc = desc.substring(0, desc.length - 3);
+        }
+
+        return desc.trim();
+    }, [profile?.description]);
 
     useEffect(() => {
         downloadResume(id).then((response) => {
@@ -41,11 +59,13 @@ export function CandidatePage() {
                 receiverId: profile.userId,
                 receiverName: profile.name + ' ' + profile.surname,
                 message: message,
-            } as ChatCreateDto
+            } as ChatCreateDto;
             const result = await createChat(request);
             if (!result.error) {
                 setIsMessageSent(true);
                 setMessage('');
+            } else {
+                showErrorToast('Failed to send message');
             }
         } else {
             showErrorToast('Something went wrong')
@@ -60,11 +80,10 @@ export function CandidatePage() {
         showErrorToast(`Error: ${JSON.stringify(error.data)}`);
     }
 
-    // Create a string of unique locations separated by commas
     const locationString = [...new Set(profile?.locations.map(location => `${location.city}, ${location.country}`))].join(', ');
 
-    // Map attendance modes to their string representations
     const attendanceModes = ['OnSite', 'Remote', 'Mixed', 'OnSiteOrRemote'];
+
 
     function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
         setNumPages(numPages);
@@ -74,11 +93,27 @@ export function CandidatePage() {
         profile &&
         <>
             <div style={{ display: 'flex' }}>
-                <Card style={{ flex: 1, marginRight: '1rem', padding: '1em' }}>
+                <Card style={{ flex: 1, marginRight: '1rem', padding: '1em' }}>g
                     <CardContent>
                         <Typography variant="h5">{profile?.positionTitle}</Typography>
                         <Typography variant="h6" style={{ marginTop: '1rem' }}>Description</Typography>
-                        <Typography variant="body1" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>{profile.description}</Typography>
+                        <div className="markdown-content" style={{ margin: '1rem 0' }}>
+                            <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
+                                components={{
+                                    p: ({ node, ...props }) => <p style={{ margin: '0.5rem 0' }} {...props} />,
+                                    ul: ({ node, ...props }) => <ul style={{ marginLeft: '1.5rem', listStyleType: 'disc' }} {...props} />,
+                                    ol: ({ node, ...props }) => <ol style={{ marginLeft: '1.5rem' }} {...props} />,
+                                    li: ({ node, ...props }) => <li style={{ margin: '0.25rem 0' }} {...props} />,
+                                    h1: ({ node, ...props }) => <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: '1rem 0' }} {...props} />,
+                                    h2: ({ node, ...props }) => <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: '1rem 0' }} {...props} />,
+                                    h3: ({ node, ...props }) => <h3 style={{ fontSize: '1.3rem', fontWeight: 'bold', margin: '0.75rem 0' }} {...props} />,
+                                    strong: (props) => <strong style={{ fontWeight: 'bold' }} {...props} />
+                                }}
+                            >
+                                {processedDescription}
+                            </ReactMarkdown>
+                        </div>
                         {profile.skills && profile.skills.map((skill) => (
                             <Chip label={skill.name} variant="outlined" style={{ margin: '0.5rem 0' }} />
                         ))}

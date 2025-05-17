@@ -87,5 +87,18 @@ public static class VacancyEndpoints
             .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Recruiter}" })
             .WithName("Ai Description")
             .WithOpenApi();
+
+        vacancyGroup.MapGet("/recommended",
+                async ([AsParameters] VacancyFilterParameters vacancyFilter,
+                    [FromServices] IVacancyService vacanciesService, ClaimsPrincipal claimsPrincipal) =>
+                {
+                    var userId = int.Parse(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier) ??
+                                           throw new InvalidOperationException());
+                    var result = await vacanciesService.GetRecommendedVacanciesAsync(userId, vacancyFilter);
+                    return Results.Ok(result);
+                })
+            .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Candidate}" })
+            .WithName("GetRecommendedVacancies")
+            .WithOpenApi();
     }
 }

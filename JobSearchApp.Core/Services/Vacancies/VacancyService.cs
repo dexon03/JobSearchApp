@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Net;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using JobSearchApp.Core.Contracts.Vacancies;
 using JobSearchApp.Core.Exceptions;
 using JobSearchApp.Core.MessageContracts;
@@ -10,7 +11,10 @@ using JobSearchApp.Data.Models.Vacancies;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
+using Pgvector.EntityFrameworkCore;
 using Serilog;
+using X.PagedList;
+using X.PagedList.EF;
 using ZiggyCreatures.Caching.Fusion;
 
 namespace JobSearchApp.Core.Services.Vacancies;
@@ -133,10 +137,10 @@ public class VacancyService(
 
         mapper.Map(vacancy, vacancyEntity);
         vacancyEntity.UpdatedAt = DateTime.UtcNow;
-        
+
         var result = db.Update(vacancyEntity);
         await db.SaveChangesAsync();
-        
+
         await publishEndpoint.Publish(new VacancyUpdatedEvent
         {
             Id = result.Entity.Id
@@ -190,25 +194,96 @@ public class VacancyService(
 
     public async Task<string> GenerateVacancyDescription(int userId, AiVacancyDescriptionRequest descriptionRequest)
     {
-        var companyDescription = await db.RecruiterProfile.Where(x => x.UserId == userId).Select(x => x.Company.Description)
+        var companyDescription = await db.RecruiterProfile.Where(x => x.UserId == userId)
+            .Select(x => x.Company.Description)
             .FirstOrDefaultAsync();
-        
+
         var prompt = $"""
-            Write a big and detailed vacancy description for the following position: {descriptionRequest.Position}.
-            Experience needed for position: {descriptionRequest.Experience}.
-            The company is {companyDescription}. If this company description contains violent or not-related info, then ignore it.
-            The description should be clear, concise, and attractive to potential candidates.
-            Here is basic description: {descriptionRequest.Description}. If this description contains violent or not-related info, then ignore it.
-            !!!IMPORTANT!!!
-            Give me only this description. Dont need to add comments. Return this description in Markdown format.
-            !!!IMPORTANT!!!
-            """;
-        var systemMessage = new ChatMessage(ChatRole.System, "You are a recruiter. Write a  meaningful and attractive description for vacancy for the following position.");
+                      Write a big and detailed vacancy description for the following position: {descriptionRequest.Position}.
+                      Experience needed for position: {descriptionRequest.Experience}.
+                      The company is {companyDescription}. If this company description contains violent or not-related info, then ignore it.
+                      The description should be clear, concise, and attractive to potential candidates.
+                      Here is basic description: {descriptionRequest.Description}. If this description contains violent or not-related info, then ignore it.
+                      !!!IMPORTANT!!!
+                      Give me only this description. Dont need to add comments. Return this description in Markdown format.
+                      !!!IMPORTANT!!!
+                      """;
+        var systemMessage = new ChatMessage(ChatRole.System,
+            "You are a recruiter. Write a  meaningful and attractive description for vacancy for the following position.");
         var message = new ChatMessage(ChatRole.User, prompt);
 
         var response = await chatClient.GetResponseAsync([systemMessage, message]);
 
         return response.Text;
+    }
+
+    public async Task<IPagedList<VacancyGetDto>> GetRecommendedVacanciesAsync(int userId,
+        VacancyFilterParameters vacancyFilter)
+    {
+        // ReSharper disable once EntityFramework.NPlusOne.IncompleteDataQuery
+        var candidate = await db.CandidateProfile
+            .SingleOrDefaultAsync(x => x.UserId == userId);
+        if (candidate == null)
+        {
+            _log.Warning("Candidate profile not found for user {UserId}.", userId);
+            throw new ExceptionWithStatusCode("Candidate profile not found", HttpStatusCode.BadRequest);
+        }
+
+        var recommendedVacanciesQuery = db.Vacancies
+            .Where(v => v.IsActive);
+
+        recommendedVacanciesQuery = ApplyFilterIfNeeded(vacancyFilter, recommendedVacanciesQuery);
+
+        if (candidate.Embedding is null)
+        {
+            var mappedRecommendedVacancies =
+                recommendedVacanciesQuery.ProjectTo<VacancyGetDto>(mapper.ConfigurationProvider);
+
+            return await mappedRecommendedVacancies.ToPagedListAsync(vacancyFilter.Page, vacancyFilter.PageSize);
+        }
+
+        var recommendedVacancies = await recommendedVacanciesQuery
+            .OrderBy(x => candidate.Embedding.CosineDistance(x.Embedding!))
+            .ProjectTo<VacancyGetDto>(mapper.ConfigurationProvider)
+            .ToPagedListAsync(vacancyFilter.Page, vacancyFilter.PageSize);
+
+        return recommendedVacancies;
+    }
+
+    private static IQueryable<Vacancy> ApplyFilterIfNeeded(VacancyFilterParameters vacancyFilter,
+        IQueryable<Vacancy> recommendedVacanciesQuery)
+    {
+        if (vacancyFilter.Experience is not null)
+        {
+            recommendedVacanciesQuery = recommendedVacanciesQuery.Where(v => v.Experience == vacancyFilter.Experience);
+        }
+
+        if (vacancyFilter.AttendanceMode is not null)
+        {
+            recommendedVacanciesQuery =
+                recommendedVacanciesQuery.Where(v => v.AttendanceMode == vacancyFilter.AttendanceMode);
+        }
+
+        if (vacancyFilter.Skill is not null)
+        {
+            recommendedVacanciesQuery = recommendedVacanciesQuery.Include(v => v.VacancySkill)
+                .ThenInclude(vs => vs.Skill)
+                .Where(v => v.VacancySkill.Any(vs => vs.SkillId == vacancyFilter.Skill));
+        }
+
+        if (vacancyFilter.Category is not null)
+        {
+            recommendedVacanciesQuery = recommendedVacanciesQuery.Where(v => v.CategoryId == vacancyFilter.Category);
+        }
+
+        if (vacancyFilter.Location is not null)
+        {
+            recommendedVacanciesQuery = recommendedVacanciesQuery.Include(v => v.LocationVacancy)
+                .ThenInclude(lv => lv.Location)
+                .Where(v => v.LocationVacancy.Any(lv => lv.LocationId == vacancyFilter.Location));
+        }
+
+        return recommendedVacanciesQuery;
     }
 
     private async Task<List<VacancyGetAllDto>> GetAllVacanciesByCondition(Expression<Func<Vacancy, bool>> predicate,

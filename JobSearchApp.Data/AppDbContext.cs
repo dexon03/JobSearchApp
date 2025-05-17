@@ -106,6 +106,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             x.HasOne(t => t.Recruiter)
                 .WithMany()
                 .HasForeignKey(t => t.RecruiterId);
+
+            x.HasIndex(t => t.Embedding)
+                .HasMethod("ivfflat")
+                .HasOperators("vector_cosine_ops")
+                .HasStorageParameter("lists", 100);
         });
         builder.Entity<LocationVacancy>(x =>
         {
@@ -138,6 +143,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
                 .WithMany()
                 .HasForeignKey(x => x.ReceiverId); 
         });
+
+        builder.Entity<CandidateProfile>(x =>
+        {
+            x.HasIndex(t => t.Embedding)
+                .HasMethod("ivfflat")
+                .HasOperators("vector_cosine_ops")
+                .HasStorageParameter("lists", 100);
+        });
+
     }
 
     private static void SeedIdentityModels(ModelBuilder builder)

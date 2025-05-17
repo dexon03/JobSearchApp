@@ -97,7 +97,7 @@ public static class ProfileEndpoints
 
                 return Results.Ok(response);
             })
-            .AllowAnonymous()
+            .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Candidate}" })
             .WithOpenApi();
     }
 }

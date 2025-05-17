@@ -290,7 +290,8 @@ public class ProfileService(
         var prompt = $"""
                       I need to generate big and detailed description for my profile. 
                       I will give you info about me, short description and my pdf resume if it exists(if pdf or/and description does not contain info for my description as candidate then ignore it).
-                      You will take that info and generate a description for me.
+                      You will take that info and generate a rich interesting  description for me.
+                      If something empty or not exist, just ignore it.
                       !!!IMPORTANT!!!
                       Give me only this description in Markdown format.Dont need to add any comments or explanations.
                       !!!

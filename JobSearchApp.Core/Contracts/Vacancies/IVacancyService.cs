@@ -1,5 +1,6 @@
 ﻿using JobSearchApp.Core.Models.Vacancies;
 using JobSearchApp.Data.Models.Vacancies;
+using X.PagedList;
 
 namespace JobSearchApp.Core.Contracts.Vacancies;
 
@@ -13,4 +14,5 @@ public interface IVacancyService
     Task DeleteVacancy(int id);
     Task ActivateDeactivateVacancy(int id);
     Task<string> GenerateVacancyDescription(int userId, AiVacancyDescriptionRequest descriptionRequest);
+    Task<IPagedList<VacancyGetDto>> GetRecommendedVacanciesAsync(int userId, VacancyFilterParameters vacancyFilter);
 }

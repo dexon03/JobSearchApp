@@ -19,6 +19,7 @@
       <PackageReference Include="Microsoft.Extensions.AI.Ollama" Version="9.3.0-preview.1.25161.3" />
       <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.1" />
       <PackageReference Include="SharpGrip.FluentValidation.AutoValidation.Endpoints" Version="1.5.0" />
+      <PackageReference Include="X.PagedList.EF" Version="10.5.7" />
       <PackageReference Include="ZiggyCreatures.FusionCache" Version="2.1.0" />
       <PackageReference Include="ZiggyCreatures.FusionCache.Serialization.SystemTextJson" Version="2.1.0" />
     </ItemGroup>

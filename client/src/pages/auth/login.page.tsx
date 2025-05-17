@@ -10,6 +10,7 @@ import { TokenResponse } from '../../models/auth/jwt.respone';
 import { LoginModel } from '../../models/auth/login.model';
 import { Role } from '../../models/common/role.enum';
 import useRole from '../../hooks/useRole';
+import { showErrorToast } from '../../app/features/common/popup';
 
 function LoginPage() {
     const navigate = useNavigate();
@@ -23,6 +24,11 @@ function LoginPage() {
             email: values.email,
             password: values.password
         } as LoginModel);
+        if (!tokenResponse) {
+            showErrorToast('Invalid email or password');
+            return;
+        }
+
         setToken(tokenResponse);
         const role = await restClient.get(`/role`);
         setRole(role as string);

@@ -6,14 +6,14 @@
       dockerfile: JobSearchApp.Api/Dockerfile
     ports:
       - "5050:8080"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     depends_on:
       - jobsearchapp.db
       - jobsearchapp.rabbitmq
       - jobsearchapp.redis
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./PdfResumesFiles:/app/PdfResumesFiles
   

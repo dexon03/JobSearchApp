@@ -50,19 +50,16 @@ export function VacancyPage() {
 
     const locationString = [...new Set(vacancy?.locations?.map(location => `${location.city}, ${location.country}`))].join(', ');
 
-    // Process the description to remove markdown code block syntax if present
     const processedDescription = useMemo(() => {
         if (!vacancy?.description) return '';
 
         let desc = vacancy.description;
-        // Check if the description starts with ```markdown or ```
         if (desc.startsWith('```markdown') || desc.startsWith('```markdawn')) {
             desc = desc.substring(desc.indexOf('\n') + 1);
         } else if (desc.startsWith('```')) {
             desc = desc.substring(3);
         }
 
-        // Remove closing backticks if present
         if (desc.endsWith('```')) {
             desc = desc.substring(0, desc.length - 3);
         }

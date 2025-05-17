@@ -1,5 +1,7 @@
-﻿using JobSearchApp.Data.Enums;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using JobSearchApp.Data.Enums;
 using JobSearchApp.Data.Models.Common;
+using JobSearchApp.Data.Models.Profiles;
 using Pgvector;
 
 namespace JobSearchApp.Data.Models.Vacancies;
@@ -20,9 +22,10 @@ public class Vacancy
     public int CompanyId { get; set; }
     public int RecruiterId { get; set; }
 
-    public User Recruiter { get; set; }
+    public RecruiterProfile Recruiter { get; set; }
     public Category? Category { get; set; }
     public Company? Company { get; set; }
+    [Column(TypeName = "vector(768)")]
     public Vector? Embedding { get; set; }
     public virtual ICollection<LocationVacancy> LocationVacancy { get; set; } = [];
     public virtual ICollection<VacancySkill> VacancySkill { get; set; } = [];

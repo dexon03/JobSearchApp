@@ -3,6 +3,7 @@ using System;
 using JobSearchApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pgvector;
@@ -12,9 +13,11 @@ using Pgvector;
 namespace JobSearchApp.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250517204602_AddedIndexForEmbeddings")]
+    partial class AddedIndexForEmbeddings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -345,8 +348,7 @@ namespace JobSearchApp.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Embedding")
-                        .HasAnnotation("Npgsql:StorageParameter:lists", 100);
+                    b.HasIndex("Embedding");
 
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Embedding"), "ivfflat");
                     NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("Embedding"), new[] { "vector_cosine_ops" });
@@ -677,8 +679,7 @@ namespace JobSearchApp.Data.Migrations
 
                     b.HasIndex("CompanyId");
 
-                    b.HasIndex("Embedding")
-                        .HasAnnotation("Npgsql:StorageParameter:lists", 100);
+                    b.HasIndex("Embedding");
 
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Embedding"), "ivfflat");
                     NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("Embedding"), new[] { "vector_cosine_ops" });
@@ -953,7 +954,7 @@ namespace JobSearchApp.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("JobSearchApp.Data.Models.Profiles.RecruiterProfile", "Recruiter")
+                    b.HasOne("JobSearchApp.Data.Models.User", "Recruiter")
                         .WithMany()
                         .HasForeignKey("RecruiterId")
                         .OnDelete(DeleteBehavior.Cascade)
