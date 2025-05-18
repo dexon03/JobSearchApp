@@ -217,7 +217,7 @@ public class VacancyService(
         return response.Text;
     }
 
-    public async Task<IPagedList<VacancyGetDto>> GetRecommendedVacanciesAsync(int userId,
+    public async Task<IPagedList<VacancyGetAllDto>> GetRecommendedVacanciesAsync(int userId,
         VacancyFilterParameters vacancyFilter)
     {
         // ReSharper disable once EntityFramework.NPlusOne.IncompleteDataQuery
@@ -232,19 +232,19 @@ public class VacancyService(
         var recommendedVacanciesQuery = db.Vacancies
             .Where(v => v.IsActive);
 
-        recommendedVacanciesQuery = ApplyFilterIfNeeded(vacancyFilter, recommendedVacanciesQuery);
+        // recommendedVacanciesQuery = ApplyFilterIfNeeded(vacancyFilter, recommendedVacanciesQuery);
 
         if (candidate.Embedding is null)
         {
             var mappedRecommendedVacancies =
-                recommendedVacanciesQuery.ProjectTo<VacancyGetDto>(mapper.ConfigurationProvider);
+                recommendedVacanciesQuery.ProjectTo<VacancyGetAllDto>(mapper.ConfigurationProvider);
 
             return await mappedRecommendedVacancies.ToPagedListAsync(vacancyFilter.Page, vacancyFilter.PageSize);
         }
 
         var recommendedVacancies = await recommendedVacanciesQuery
             .OrderBy(x => candidate.Embedding.CosineDistance(x.Embedding!))
-            .ProjectTo<VacancyGetDto>(mapper.ConfigurationProvider)
+            .ProjectTo<VacancyGetAllDto>(mapper.ConfigurationProvider)            
             .ToPagedListAsync(vacancyFilter.Page, vacancyFilter.PageSize);
 
         return recommendedVacancies;

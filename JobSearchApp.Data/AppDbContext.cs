@@ -108,9 +108,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
                 .HasForeignKey(t => t.RecruiterId);
 
             x.HasIndex(t => t.Embedding)
-                .HasMethod("ivfflat")
+                .HasMethod("hnsw")
                 .HasOperators("vector_cosine_ops")
-                .HasStorageParameter("lists", 100);
+                .HasStorageParameter("m", 16)
+                .HasStorageParameter("ef_construction", 80);
         });
         builder.Entity<LocationVacancy>(x =>
         {
@@ -147,9 +148,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         builder.Entity<CandidateProfile>(x =>
         {
             x.HasIndex(t => t.Embedding)
-                .HasMethod("ivfflat")
+                .HasMethod("hnsw")
                 .HasOperators("vector_cosine_ops")
-                .HasStorageParameter("lists", 100);
+                .HasStorageParameter("m", 16)
+                .HasStorageParameter("ef_construction", 80);
         });
 
     }

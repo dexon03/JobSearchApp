@@ -14,5 +14,5 @@ public interface IVacancyService
     Task DeleteVacancy(int id);
     Task ActivateDeactivateVacancy(int id);
     Task<string> GenerateVacancyDescription(int userId, AiVacancyDescriptionRequest descriptionRequest);
-    Task<IPagedList<VacancyGetDto>> GetRecommendedVacanciesAsync(int userId, VacancyFilterParameters vacancyFilter);
+    Task<IPagedList<VacancyGetAllDto>> GetRecommendedVacanciesAsync(int userId, VacancyFilterParameters vacancyFilter);
 }

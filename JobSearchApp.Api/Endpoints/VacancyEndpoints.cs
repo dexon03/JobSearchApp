@@ -9,6 +9,7 @@ namespace JobSearchApp.Api.Endpoints;
 
 public static class VacancyEndpoints
 {
+    [Obsolete("Obsolete")]
     public static void Register(RouteGroupBuilder group)
     {
         var vacancyGroup = group.MapGroup("/vacancy");
@@ -95,7 +96,11 @@ public static class VacancyEndpoints
                     var userId = int.Parse(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier) ??
                                            throw new InvalidOperationException());
                     var result = await vacanciesService.GetRecommendedVacanciesAsync(userId, vacancyFilter);
-                    return Results.Ok(result);
+                    return Results.Ok(new
+                    {
+                        Vacancies = result,
+                        MetaData = result.GetMetaData()
+                    });
                 })
             .RequireAuthorization(new AuthorizeAttribute { Roles = $"{Role.Candidate}" })
             .WithName("GetRecommendedVacancies")

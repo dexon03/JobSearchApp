@@ -45,8 +45,8 @@ public class VacancyProfile : Profile
         CreateMap<Vacancy, VacancyGetDto>()
             .ForMember(dest => dest.Locations, opt => opt.MapFrom(src => src.LocationVacancy))
             .ForMember(dest => dest.Skills, opt => opt.MapFrom(src => src.VacancySkill));
-            ;
-        
+        ;
+
         CreateMap<LocationVacancy, LocationDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Location.Id))
             .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.Location.City))
@@ -58,5 +58,15 @@ public class VacancyProfile : Profile
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Skill.Name))
             .ReverseMap();
 
+        CreateMap<Vacancy, VacancyGetAllDto>()
+            .ForMember(x => x.CompanyName, opt => opt.MapFrom(x => x.Company.Name))
+            .ForMember(x => x.Experience, opt => opt.MapFrom(x => x.Experience.ToString()))
+            .ForMember(x => x.AttendanceMode, opt => opt.MapFrom(x => x.AttendanceMode.ToString()))
+            .ForMember(x => x.Locations, opt => opt.MapFrom(x => x.LocationVacancy.Select(t => new LocationDto
+            {
+                Id = t.Location.Id,
+                City = t.Location.City,
+                Country = t.Location.Country
+            })));
     }
 }

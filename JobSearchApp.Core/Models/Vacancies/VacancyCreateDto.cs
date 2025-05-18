@@ -7,7 +7,7 @@ public class VacancyCreateDto
     public string Title { get; set; } = null!;
     public string Description { get; set; }
     public double Salary { get; set; }
-    public AttendanceMode Attendance { get; set; }
+    public AttendanceMode AttendanceMode { get; set; }
     public Experience Experience { get; set; }
     public bool IsActive { get; set; } = true;
     public int RecruiterId { get; set; }

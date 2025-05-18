@@ -12,10 +12,11 @@ import { VacancyCreate } from '../../../models/vacancy/vacancy.create.dto';
 import { VacancyGetAll } from '../../../models/vacancy/vacancy.getall.dto';
 import { VacancyUpdateModel } from '../../../models/vacancy/vacancy.update.dto';
 import { VacancyGet } from '../../../models/vacancy/vacany.get.dto';
+import { VacancyPaginated } from '../../../models/vacancy/vacancy.paginated';
 
 export const vacancyApi = createApi({
     reducerPath: 'vacancyApi',
-    tagTypes: ['VacancyAll', 'RecruiterVacancy', 'Statistic'],
+    tagTypes: ['VacancyAll', 'RecruiterVacancy', 'Statistic', 'VacancyRecommended'],
     baseQuery: axiosBaseQuery({ baseUrl: environment.apiUrl }),
     keepUnusedDataFor: 5,
     endpoints: (builder) => ({
@@ -42,7 +43,7 @@ export const vacancyApi = createApi({
                 method: 'post',
                 data: body
             }),
-            invalidatesTags: ['VacancyAll', 'RecruiterVacancy', 'Statistic']
+            invalidatesTags: ['VacancyAll', 'RecruiterVacancy', 'Statistic', 'VacancyRecommended']
         }),
         getVacancyLocation: builder.query<LocationDto[], void>({ query: () => ({ url: '/location', method: 'get' }) }),
         getVacancySkills: builder.query<SkillDto[], void>({ query: () => ({ url: `/skill`, method: 'get' }) }),
@@ -52,7 +53,7 @@ export const vacancyApi = createApi({
                 url: `/vacancy/${id}/activate-deactivate`,
                 method: 'put'
             }),
-            invalidatesTags: ['VacancyAll', 'RecruiterVacancy', 'Statistic']
+            invalidatesTags: ['VacancyAll', 'RecruiterVacancy', 'Statistic', 'VacancyRecommended']
         }),
         updateVacancy: builder.mutation<VacancyGet, VacancyUpdateModel>({
             query: (body: VacancyUpdateModel) => ({
@@ -60,7 +61,7 @@ export const vacancyApi = createApi({
                 method: 'put',
                 data: body
             }),
-            invalidatesTags: ['VacancyAll', 'RecruiterVacancy', 'Statistic']
+            invalidatesTags: ['VacancyAll', 'RecruiterVacancy', 'Statistic', 'VacancyRecommended']
         }),
         deleteVacancy: builder.mutation<void, string>({
             query: (id: string) => ({
@@ -91,6 +92,14 @@ export const vacancyApi = createApi({
                 timeout: 150000,
             }),
         }),
+        getRecommendedVacancies: builder.query<VacancyPaginated<VacancyGetAll>, VacancyFilter>({
+            query: (filter: VacancyFilter) => ({
+                url: '/vacancy/recommended',
+                method: 'get',
+                params: filter
+            }),
+            providesTags: ['VacancyRecommended']
+        }),
     }),
 });
 
@@ -109,6 +118,7 @@ export const {
     useLazyGetStatisticQuery,
     useGetMockedStatisticQuery,
     useLazyGenerateVacancyDesciprtionQuery,
+    useGetRecommendedVacanciesQuery,
 } = vacancyApi;
 
 export const { useQuerySubscription: useQuerySubscriptionGetAllVacancies } = vacancyApi.endpoints.getVacancies;

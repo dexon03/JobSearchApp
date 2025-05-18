@@ -10,6 +10,10 @@ export const RoleRoute =
             route: '/vacancy',
         },
         {
+            name: 'Recommendations',
+            route: '/vacancy/recommended',
+        },
+        {
             name: 'Salaries',
             route: '/salaries',
         }
