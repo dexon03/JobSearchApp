@@ -72,6 +72,14 @@ public class EmbeddingService : IEmbeddingService
         _logger.Information("Embedding generated for candidate profile {CandidateId}", candidateProfile.Id);
     }
 
+    public async Task<Vector> GenerateEmbeddingForSearchTerm(string searchTerm)
+    {
+        var embedding = await _embeddingGenerator.GenerateAsync([searchTerm]);
+        var vector = new Vector(embedding.Single().Vector);
+        _logger.Information("Generated embedding for search term {SearchTerm}", searchTerm);
+        return vector;
+    }
+
     private async Task GenerateEmbedding(Vacancy vacancy)
     {
         var skills = vacancy.VacancySkill.Select(x => x.Skill.Name);

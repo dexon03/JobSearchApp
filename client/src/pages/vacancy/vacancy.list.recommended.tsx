@@ -29,9 +29,9 @@ export function VacancyListRecommendedPage() {
         getCategories();
     }, [getLocations, getSkills, getCategories])
 
-    // if (isLoading) {
-    //     return <p>Loading...</p>;
-    // }
+    if (isLoading) {
+        return <p>Loading...</p>;
+    }
 
     if (role == Role[Role.Recruiter]) {
         return <p>You are not allowed to see this page</p>;

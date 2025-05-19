@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
 using Serilog;
+using ZiggyCreatures.Caching.Fusion;
 using Role = JobSearchApp.Data.Enums.Role;
 
 namespace JobSearchApp.Core.Services.Profiles;
@@ -24,6 +25,7 @@ public class ProfileService(
     IChatClient chatClient,
     ILogger logger,
     IPdfService pdfService,
+    IFusionCache hybridCache,
     IPublishEndpoint publishEndpoint)
     : IProfileService
 {
@@ -192,6 +194,7 @@ public class ProfileService(
         {
             ProfileId = entityEntry.Entity.Id
         });
+        await hybridCache.RemoveByTagAsync("recommended_vacancies");
 
         var result = mapper.Map<GetCandidateProfileDto>(entityEntry.Entity);
         return result;

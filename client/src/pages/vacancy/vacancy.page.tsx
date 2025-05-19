@@ -118,7 +118,7 @@ export function VacancyPage() {
                     </CardContent>
                 </Card>
             </div >
-            {role == Role.Candidate ? (!isMessageSent ?
+            {role == Role[Role.Candidate] ? (!isMessageSent ?
                 <div style={{ marginTop: '1rem', width: '100%' }}>
                     <TextField
                         label="Type your message"
