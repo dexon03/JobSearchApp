@@ -93,7 +93,7 @@ export function CandidatePage() {
         profile &&
         <>
             <div style={{ display: 'flex' }}>
-                <Card style={{ flex: 1, marginRight: '1rem', padding: '1em' }}>g
+                <Card style={{ flex: 1, marginRight: '1rem', padding: '1em' }}>
                     <CardContent>
                         <Typography variant="h5">{profile?.positionTitle}</Typography>
                         <Typography variant="h6" style={{ marginTop: '1rem' }}>Description</Typography>

@@ -70,19 +70,25 @@ export function VacancyListPage() {
                     : null
                 }
             </div>
-            <div className="m-2">
+            <div className="m-2 mr-0" style={{ display: 'flex', alignItems: 'center' }}>
                 <TextField
                     label="Search"
                     variant="outlined"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
+                    size="small"
+                    sx={{ marginRight: 1 }}
                 />
-                <Button variant="contained" className="ml-2" onClick={handleSearch}>
+                <Button
+                    variant="contained"
+                    onClick={handleSearch}
+                    size="small"
+                >
                     Search
                 </Button>
             </div>
             <div className="flex row m-2">
-                <FormControl variant="outlined" className="mr-2 col">
+                <FormControl variant="outlined" className="mr-2 col" size="small">
                     <InputLabel id="attendance-label">Attendance</InputLabel>
                     <Select
                         label="Attendance"
@@ -101,7 +107,7 @@ export function VacancyListPage() {
                     </Select>
                 </FormControl>
 
-                <FormControl variant="outlined" className="mx-2 col">
+                <FormControl variant="outlined" className="mx-2 col" size="small">
                     <InputLabel id="experience-label">Experience</InputLabel>
                     <Select
                         label="Experience"
@@ -118,7 +124,7 @@ export function VacancyListPage() {
                     </Select>
                 </FormControl>
 
-                <FormControl variant="outlined" className="mx-2 col">
+                <FormControl variant="outlined" className="mx-2 col" size="small">
                     <InputLabel id="location-label">Location</InputLabel>
                     <Select
                         label="Location"
@@ -131,7 +137,7 @@ export function VacancyListPage() {
                     </Select>
                 </FormControl>
 
-                <FormControl variant="outlined" className="mx-2 col">
+                <FormControl variant="outlined" className="mx-2 col" size="small">
                     <InputLabel id="skill-label">Skill</InputLabel>
                     <Select
                         label="Skill"
@@ -143,7 +149,7 @@ export function VacancyListPage() {
                         <MenuItem value={''}>Clear</MenuItem>
                     </Select>
                 </FormControl>
-                <FormControl variant="outlined" className="ml-2 col">
+                <FormControl variant="outlined" className="ml-2 col" size="small">
                     <InputLabel id="category-label">Category</InputLabel>
                     <Select
                         label="Category"

@@ -9,6 +9,7 @@ import { RecruiterProfile } from "../../../models/profile/recruiter.profile.mode
 import { UpdateRecruiterProfileModel } from "../../../models/profile/updateRecruiterProfileModel";
 import { GenerateProfileDescriptionRequest } from "../../../models/profile/generateProfileDescriptionRequest";
 import { GenerateProfileDescriptionResponse } from "../../../models/profile/generateProfileDescriptionResponse";
+import { vacancyApi } from "../vacancy/vacancy.api";
 
 export const profileApi = createApi({
     reducerPath: 'profileApi',
@@ -49,7 +50,15 @@ export const profileApi = createApi({
                 method: 'put',
                 data: profile
             }),
-            invalidatesTags: ['CandidateProfile']
+            invalidatesTags: ['CandidateProfile'],
+            async onQueryStarted(_, { dispatch, queryFulfilled }) {
+                try {
+                    await queryFulfilled;
+                    dispatch(vacancyApi.util.invalidateTags(['VacancyRecommended']));
+                } catch (error) {
+                    console.error('Error updating candidate profile:', error);
+                }
+            }
         }),
         updateRecruiterProfile: builder.mutation<UpdateRecruiterProfileModel, RecruiterProfile>({
             query: (profile: UpdateRecruiterProfileModel) => ({
