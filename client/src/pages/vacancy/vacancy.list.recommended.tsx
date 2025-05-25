@@ -142,7 +142,7 @@ export function VacancyListRecommendedPage() {
                 {data && data.vacancies.map((vacancy) => <VacancyTile key={vacancy.id} vacancy={vacancy} isRecruiterList={false} />)}
                 <div className="m-2" style={{ display: 'flex', justifyContent: 'center' }}>
                     <Pagination
-                        count={Math.ceil((data?.metaData.totalItemCount - 1) / pageSize) + 1}
+                        count={Math.ceil((data?.metaData.totalItemCount - 1) / pageSize)}
                         page={page}
                         onChange={handlePageChange}
                         color="primary"

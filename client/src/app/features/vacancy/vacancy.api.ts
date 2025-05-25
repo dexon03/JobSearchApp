@@ -16,7 +16,7 @@ import { VacancyPaginated } from '../../../models/vacancy/vacancy.paginated';
 
 export const vacancyApi = createApi({
     reducerPath: 'vacancyApi',
-    tagTypes: ['VacancyAll', 'RecruiterVacancy', 'Statistic', 'VacancyRecommended'],
+    tagTypes: ['VacancyAll', 'RecruiterVacancy', 'Statistic'],
     baseQuery: axiosBaseQuery({ baseUrl: environment.apiUrl }),
     keepUnusedDataFor: 5,
     endpoints: (builder) => ({
@@ -43,7 +43,7 @@ export const vacancyApi = createApi({
                 method: 'post',
                 data: body
             }),
-            invalidatesTags: ['VacancyAll', 'RecruiterVacancy', 'Statistic', 'VacancyRecommended']
+            invalidatesTags: ['VacancyAll', 'RecruiterVacancy', 'Statistic']
         }),
         getVacancyLocation: builder.query<LocationDto[], void>({ query: () => ({ url: '/location', method: 'get' }) }),
         getVacancySkills: builder.query<SkillDto[], void>({ query: () => ({ url: `/skill`, method: 'get' }) }),
@@ -53,7 +53,7 @@ export const vacancyApi = createApi({
                 url: `/vacancy/${id}/activate-deactivate`,
                 method: 'put'
             }),
-            invalidatesTags: ['VacancyAll', 'RecruiterVacancy', 'Statistic', 'VacancyRecommended']
+            invalidatesTags: ['VacancyAll', 'RecruiterVacancy', 'Statistic']
         }),
         updateVacancy: builder.mutation<VacancyGet, VacancyUpdateModel>({
             query: (body: VacancyUpdateModel) => ({
@@ -61,7 +61,7 @@ export const vacancyApi = createApi({
                 method: 'put',
                 data: body
             }),
-            invalidatesTags: ['VacancyAll', 'RecruiterVacancy', 'Statistic', 'VacancyRecommended']
+            invalidatesTags: ['VacancyAll', 'RecruiterVacancy', 'Statistic']
         }),
         deleteVacancy: builder.mutation<void, string>({
             query: (id: string) => ({
@@ -72,7 +72,7 @@ export const vacancyApi = createApi({
         }),
         getStatistic: builder.query<StatisticNode[], string | null>({
             query: (skillName?: string | null) => ({
-                url: '/statistic' + '?skillName=' + skillName,
+                url: '/statistic' + (skillName ? `?skillName=${encodeURIComponent(skillName)}` : ''),
                 method: 'get'
             }),
             providesTags: ['Statistic']
@@ -98,7 +98,7 @@ export const vacancyApi = createApi({
                 method: 'get',
                 params: filter
             }),
-            providesTags: ['VacancyRecommended']
+            keepUnusedDataFor: 0,
         }),
     }),
 });

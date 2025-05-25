@@ -12,7 +12,7 @@ public static class StatisticEndpoints
         statisticGroup.MapGet("/", async (string? skillName, IStatisticService statisticService) =>
             {
                 var encodedSkillName = WebUtility.UrlEncode(skillName);
-                return Results.Ok(await statisticService.GetStatisticAsync(encodedSkillName));
+                return Results.Ok(await statisticService.GetStatisticAsync(skillName));
             })
             .WithName("GetStatistic")
             .WithOpenApi();

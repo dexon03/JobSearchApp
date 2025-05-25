@@ -13,7 +13,7 @@ using Role = JobSearchApp.Data.Enums.Role;
 namespace JobSearchApp.Core.Services.Chats;
 
 public class ChatService(
-    AppDbContext db,
+    IAppDbContext db,
     UserManager<User> userManager,
     IFusionCache hybridCache,
     ILogger logger) : IChatService

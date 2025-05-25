@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using JobSearchApp.Data.Models;
 using JobSearchApp.Data.Models.Chats;
 using JobSearchApp.Data.Models.Common;
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace JobSearchApp.Data;
 
+[ExcludeFromCodeCoverage]
 public class AppDbContext(DbContextOptions<AppDbContext> options)
     : IdentityDbContext<User, Role, int, IdentityUserClaim<int>, AspNetUserRole, IdentityUserLogin<int>,
-        IdentityRoleClaim<int>, IdentityUserToken<int>>(options), IDataProtectionKeyContext
+        IdentityRoleClaim<int>, IdentityUserToken<int>>(options), IDataProtectionKeyContext, IAppDbContext
 {
     public DbSet<Vacancy> Vacancies { get; set; }
     public DbSet<Location> Locations { get; set; }

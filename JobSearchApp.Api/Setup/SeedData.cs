@@ -2,7 +2,6 @@
 using JobSearchApp.Data.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Role = JobSearchApp.Data.Enums.Role;
 
 namespace JobSearchApp.Api.Setup;
 

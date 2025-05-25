@@ -1,6 +1,5 @@
 ﻿using JobSearchApp.Core.Models.Vacancies;
 using JobSearchApp.Data.Enums;
-using JobSearchApp.Data.Models.Profiles;
 
 namespace JobSearchApp.Core.Models.Profiles;
 

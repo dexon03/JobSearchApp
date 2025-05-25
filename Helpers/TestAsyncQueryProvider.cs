@@ -18,7 +18,7 @@ public class TestAsyncQueryProvider<T> : IAsyncQueryProvider
         => new TestAsyncEnumerable<TElement>(expression);
 
     public object Execute(Expression expression)
-        => _inner.Execute(expression);
+        => _inner.Execute(expression) ?? throw new InvalidOperationException();
 
     public TResult Execute<TResult>(Expression expression)
     {

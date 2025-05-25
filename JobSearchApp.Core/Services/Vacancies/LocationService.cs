@@ -10,7 +10,7 @@ using ZiggyCreatures.Caching.Fusion;
 
 namespace JobSearchApp.Core.Services.Vacancies;
 
-public class LocationService(AppDbContext db, IMapper mapper, IFusionCache hybridCache, ILogger logger)
+public class LocationService(IAppDbContext db, IMapper mapper, IFusionCache hybridCache, ILogger logger)
     : ILocationService
 {
     private readonly ILogger _log = logger.ForContext<LocationService>();
@@ -69,13 +69,13 @@ public class LocationService(AppDbContext db, IMapper mapper, IFusionCache hybri
             throw new Exception("Location already exists");
         }
 
-        var result = db.Locations.Add(locationEntity);
+        db.Locations.Add(locationEntity);
         await db.SaveChangesAsync();
 
         await hybridCache.RemoveByTagAsync("locations");
         _log.Information("New location {City}, {Country} created. Cache invalidated.", location.City, location.Country);
 
-        var locationDto = mapper.Map<LocationDto>(result.Entity);
+        var locationDto = mapper.Map<LocationDto>(locationEntity);
 
         return locationDto;
     }
@@ -90,7 +90,7 @@ public class LocationService(AppDbContext db, IMapper mapper, IFusionCache hybri
             throw new Exception("Location not found");
         }
 
-        var result = db.Update(locationEntity);
+        db.Locations.Update(locationEntity);
         await db.SaveChangesAsync();
 
         await hybridCache.RemoveByTagAsync($"location_{locationEntity.Id}");
@@ -98,7 +98,7 @@ public class LocationService(AppDbContext db, IMapper mapper, IFusionCache hybri
 
         _log.Information("Location {LocationId} updated. Cache invalidated.", locationEntity.Id);
 
-        var locationDto = mapper.Map<LocationDto>(result.Entity);
+        var locationDto = mapper.Map<LocationDto>(locationEntity);
 
         return locationDto;
     }

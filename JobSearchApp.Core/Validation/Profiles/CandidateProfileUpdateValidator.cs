@@ -7,7 +7,7 @@ namespace JobSearchApp.Core.Validation.Profiles;
 
 public class CandidateProfileUpdateValidator : AbstractValidator<CandidateProfileUpdateDto>
 {
-    public CandidateProfileUpdateValidator(AppDbContext db)
+    public CandidateProfileUpdateValidator(IAppDbContext db)
     {
         RuleFor(x => x.Id).NotEmpty().WithMessage("Id is required");
         RuleFor(x => x.Name).NotEmpty().WithMessage("Name is required");

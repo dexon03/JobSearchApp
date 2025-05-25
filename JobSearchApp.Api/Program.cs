@@ -50,7 +50,7 @@ app.MapPost("api/account/register", async (RegisterDto model, UserManager<User> 
     
     await publishEndpoint.Publish<UserCreatedEvent>(new 
     {
-        UserId = user.Id,
+        UserId = user!.Id,
         user.Email,
         user.FirstName,
         user.LastName,

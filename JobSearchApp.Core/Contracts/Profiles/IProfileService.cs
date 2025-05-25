@@ -1,5 +1,4 @@
 ﻿using JobSearchApp.Core.Models.Profiles;
-using JobSearchApp.Data.Models.Profiles;
 using JobSearchApp.Data.Models.Profiles.Common;
 
 namespace JobSearchApp.Core.Contracts.Profiles;

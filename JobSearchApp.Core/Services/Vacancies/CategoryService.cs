@@ -9,7 +9,7 @@ using ZiggyCreatures.Caching.Fusion;
 
 namespace JobSearchApp.Core.Services.Vacancies;
 
-public class CategoryService(AppDbContext db, IMapper mapper, IFusionCache hybridCache, ILogger logger)
+public class CategoryService(IAppDbContext db, IMapper mapper, IFusionCache hybridCache, ILogger logger)
     : ICategoryService
 {
     private readonly ILogger _logger = logger.ForContext<CategoryService>();
@@ -55,12 +55,12 @@ public class CategoryService(AppDbContext db, IMapper mapper, IFusionCache hybri
     public async Task<Category> CreateCategory(CategoryCreateDto category)
     {
         var categoryEntity = mapper.Map<Category>(category);
-        var result = db.Categories.Add(categoryEntity);
+        db.Categories.Add(categoryEntity);
         await db.SaveChangesAsync();
 
         await hybridCache.RemoveByTagAsync("categories");
         _logger.Information("New category created. Cache invalidated.");
-        return result.Entity;
+        return categoryEntity;
     }
 
     public async Task<Category> UpdateCategory(CategoryUpdateDto category)
@@ -72,14 +72,14 @@ public class CategoryService(AppDbContext db, IMapper mapper, IFusionCache hybri
             throw new Exception("Category not found");
         }
 
-        var result = db.Update(categoryEntity);
+        db.Categories.Update(categoryEntity);
         await db.SaveChangesAsync();
 
         await hybridCache.RemoveByTagAsync($"category_{categoryEntity.Id}");
         await hybridCache.RemoveByTagAsync("categories");
 
         _logger.Information("Category {CategoryId} updated. Cache invalidated.", categoryEntity.Id);
-        return result.Entity;
+        return categoryEntity;
     }
 
     public async Task DeleteCategory(int id)

@@ -51,14 +51,6 @@ export const profileApi = createApi({
                 data: profile
             }),
             invalidatesTags: ['CandidateProfile'],
-            async onQueryStarted(_, { dispatch, queryFulfilled }) {
-                try {
-                    await queryFulfilled;
-                    dispatch(vacancyApi.util.invalidateTags(['VacancyRecommended']));
-                } catch (error) {
-                    console.error('Error updating candidate profile:', error);
-                }
-            }
         }),
         updateRecruiterProfile: builder.mutation<UpdateRecruiterProfileModel, RecruiterProfile>({
             query: (profile: UpdateRecruiterProfileModel) => ({

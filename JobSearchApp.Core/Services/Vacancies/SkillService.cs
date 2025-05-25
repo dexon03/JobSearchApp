@@ -10,7 +10,7 @@ using ZiggyCreatures.Caching.Fusion;
 
 namespace JobSearchApp.Core.Services.Vacancies;
 
-public class SkillService(AppDbContext db, IMapper mapper, IFusionCache hybridCache, ILogger logger) : ISkillService
+public class SkillService(IAppDbContext db, IMapper mapper, IFusionCache hybridCache, ILogger logger) : ISkillService
 {
     private readonly ILogger _log = logger.ForContext<SkillService>();
 
@@ -59,13 +59,13 @@ public class SkillService(AppDbContext db, IMapper mapper, IFusionCache hybridCa
     public async Task<SkillDto> CreateSkill(SkillCreateDto skill)
     {
         var skillEntity = mapper.Map<Skill>(skill);
-        var result = db.Skills.Add(skillEntity);
+        db.Skills.Add(skillEntity);
         await db.SaveChangesAsync();
 
         await hybridCache.RemoveByTagAsync("skills");
         _log.Information("New skill {SkillName} created. Cache invalidated.", skill.Name);
 
-        var skillDto = mapper.Map<SkillDto>(result.Entity);
+        var skillDto = mapper.Map<SkillDto>(skillEntity);
 
         return skillDto;
     }
@@ -80,7 +80,7 @@ public class SkillService(AppDbContext db, IMapper mapper, IFusionCache hybridCa
             throw new Exception("Skill not found");
         }
 
-        var result = db.Update(skillEntity);
+        db.Skills.Update(skillEntity);
         await db.SaveChangesAsync();
 
         await hybridCache.RemoveByTagAsync($"skill_{skillEntity.Id}");
@@ -88,7 +88,7 @@ public class SkillService(AppDbContext db, IMapper mapper, IFusionCache hybridCa
 
         _log.Information("Skill {SkillId} updated. Cache invalidated.", skillEntity.Id);
 
-        var skillDto = mapper.Map<SkillDto>(result.Entity);
+        var skillDto = mapper.Map<SkillDto>(skillEntity);
 
         return skillDto;
     }

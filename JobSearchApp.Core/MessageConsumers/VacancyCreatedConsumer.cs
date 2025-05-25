@@ -1,10 +1,12 @@
-﻿using JobSearchApp.Core.Contracts.Common;
+﻿using System.Diagnostics.CodeAnalysis;
+using JobSearchApp.Core.Contracts.Common;
 using JobSearchApp.Core.MessageContracts;
 using MassTransit;
 using Serilog;
 
 namespace JobSearchApp.Core.MessageConsumers;
 
+[ExcludeFromCodeCoverage]
 public class VacancyCreatedConsumer : IConsumer<VacancyCreatedEvent>
 {
     private readonly IEmbeddingService _embeddingService;

@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using JobSearchApp.Core.Contracts.Profiles;
 using JobSearchApp.Data.Models.Profiles;
 using Microsoft.AspNetCore.Http;
 
 namespace JobSearchApp.Core.Services.Profiles;
 
+[ExcludeFromCodeCoverage]
 public class PdfService : IPdfService
 {
     private readonly string _fileStoragePath = Path.Combine(Directory.GetCurrentDirectory(), "PdfResumesFiles");

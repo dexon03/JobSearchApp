@@ -12,14 +12,14 @@ public class ProfilesProfile : Profile
         CreateMap<RecruiterProfileUpdateDto, RecruiterProfile>();
         CreateMap<CandidateProfileUpdateDto, CandidateProfile>().ForMember(x => x.ProfileSkills,
                 opt =>
-                    opt.MapFrom((source, dest) => source.Skills.Select(x => new ProfileSkills
+                    opt.MapFrom((source, dest) => source?.Skills?.Select(x => new ProfileSkills
                     {
                         Profile = dest,
                         SkillId = x.Id
                     })))
             .ForMember(x => x.LocationProfiles,
                 opt =>
-                    opt.MapFrom((source, dest) => source.Locations.Select(x => new LocationProfile()
+                    opt.MapFrom((source, dest) => source?.Locations?.Select(x => new LocationProfile()
                     {
                         Profile = dest,
                         LocationId = x.Id

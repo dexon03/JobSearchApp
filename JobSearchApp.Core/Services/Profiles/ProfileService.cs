@@ -9,23 +9,20 @@ using JobSearchApp.Data;
 using JobSearchApp.Data.Models.Profiles;
 using JobSearchApp.Data.Models.Profiles.Common;
 using MassTransit;
-using MassTransit.Testing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
 using Serilog;
-using ZiggyCreatures.Caching.Fusion;
 using Role = JobSearchApp.Data.Enums.Role;
 
 namespace JobSearchApp.Core.Services.Profiles;
 
 public class ProfileService(
-    AppDbContext db,
+    IAppDbContext db,
     IMapper mapper,
     IChatClient chatClient,
     ILogger logger,
     IPdfService pdfService,
-    IFusionCache hybridCache,
     IPublishEndpoint publishEndpoint)
     : IProfileService
 {
@@ -187,16 +184,16 @@ public class ProfileService(
             await UploadPdf(profile, profileDto.PdfResume);
         }
 
-        var entityEntry = db.Update(profile);
+        db.CandidateProfile.Update(profile);
         await db.SaveChangesAsync();
 
         await publishEndpoint.Publish(new CandidateProfileUpdatedEvent
         {
-            ProfileId = entityEntry.Entity.Id
+            ProfileId = profile.Id
         });
-        await hybridCache.RemoveByTagAsync("recommended_vacancies");
 
-        var result = mapper.Map<GetCandidateProfileDto>(entityEntry.Entity);
+        
+        var result = mapper.Map<GetCandidateProfileDto>(profile);
         return result;
     }
 
@@ -211,10 +208,10 @@ public class ProfileService(
 
         mapper.Map(profileDto, profile);
 
-        var entity = db.Update(profile);
+        db.RecruiterProfile.Update(profile);
         await db.SaveChangesAsync();
 
-        var result = mapper.Map<GetRecruiterProfileDto>(entity.Entity);
+        var result = mapper.Map<GetRecruiterProfileDto>(profile);
 
         return result;
     }
@@ -321,14 +318,14 @@ public class ProfileService(
 
     public async Task ActivateDeactivateProfile<T>(int id) where T : Profile<T>
     {
-        var profile = await db.Set<T>().FindAsync(id);
+        var profile = await db.Set<T>().FirstOrDefaultAsync(p => p.Id == id);;
         if (profile == null)
         {
             throw new ExceptionWithStatusCode("Profile not found", HttpStatusCode.BadRequest);
         }
 
         profile.IsActive = !profile.IsActive;
-        db.Update(profile);
+        db.Set<T>().Update(profile);
         await db.SaveChangesAsync();
     }
 

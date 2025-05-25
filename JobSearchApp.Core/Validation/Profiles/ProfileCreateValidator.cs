@@ -6,7 +6,7 @@ namespace JobSearchApp.Core.Validation.Profiles;
 
 public class ProfileCreateValidator : AbstractValidator<ProfileCreateDto>
 {
-    public ProfileCreateValidator(AppDbContext db)
+    public ProfileCreateValidator(IAppDbContext db)
     {
         RuleFor(x => x.Name).NotEmpty().WithMessage("Name is required");
         RuleFor(x => x.Surname).NotEmpty().WithMessage("Surname is required");

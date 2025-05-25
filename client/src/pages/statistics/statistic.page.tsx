@@ -1,9 +1,9 @@
-import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from "recharts";
-import { useGetMockedStatisticQuery, useGetStatisticQuery, useGetVacancySkillsQuery, useLazyGetStatisticQuery } from "../../app/features/vacancy/vacancy.api";
-import { Container, Grid, Paper, Typography, Button } from "@mui/material";
+import { Button, Container, Grid, Paper, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import { StatisticDataModeEnum } from "../../models/statistic/data.mode.enum";
+import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
+import { useGetMockedStatisticQuery, useGetVacancySkillsQuery, useLazyGetStatisticQuery } from "../../app/features/vacancy/vacancy.api";
 import { SkillDto } from "../../models/common/skill.dto";
+import { StatisticDataModeEnum } from "../../models/statistic/data.mode.enum";
 
 export function StatisticPage() {
     const { data: mockedVacancies, isLoading: isMockedLoading } = useGetMockedStatisticQuery();

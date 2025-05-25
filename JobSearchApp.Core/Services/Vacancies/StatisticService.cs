@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace JobSearchApp.Core.Services.Vacancies;
 
-public class StatisticService(AppDbContext db) : IStatisticService
+public class StatisticService(IAppDbContext db) : IStatisticService
 {
     public async Task<IEnumerable<StatisticNode>> GetStatisticAsync(string? filterSkill)
     {

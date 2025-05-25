@@ -9,7 +9,7 @@ using ZiggyCreatures.Caching.Fusion;
 
 namespace JobSearchApp.Core.Services.Vacancies;
 
-public class CompanyService(AppDbContext db, IMapper mapper, IFusionCache hybridCache, ILogger logger) : ICompanyService
+public class CompanyService(IAppDbContext db, IMapper mapper, IFusionCache hybridCache, ILogger logger) : ICompanyService
 {
     private readonly ILogger _logger = logger.ForContext<CompanyService>();
 
@@ -55,12 +55,12 @@ public class CompanyService(AppDbContext db, IMapper mapper, IFusionCache hybrid
     public async Task<Company> CreateCompany(CompanyCreateDto company)
     {
         var companyEntity = mapper.Map<Company>(company);
-        var result = db.Companies.Add(companyEntity);
+        db.Companies.Add(companyEntity);
         await db.SaveChangesAsync();
 
         await hybridCache.RemoveByTagAsync("companies");
         _logger.Information("New company created. Cache invalidated.");
-        return result.Entity;
+        return companyEntity;
     }
 
     public async Task<Company> UpdateCompany(CompanyUpdateDto company)
@@ -72,14 +72,14 @@ public class CompanyService(AppDbContext db, IMapper mapper, IFusionCache hybrid
             throw new Exception("Company that you are trying to update does not exist");
         }
 
-        var result = db.Update(companyEntity);
+        db.Companies.Update(companyEntity);
         await db.SaveChangesAsync();
 
         await hybridCache.RemoveByTagAsync($"company_{companyEntity.Id}");
         await hybridCache.RemoveByTagAsync("companies");
 
         _logger.Information("Company {CompanyId} updated. Cache invalidated.", companyEntity.Id);
-        return result.Entity;
+        return companyEntity;
     }
 
     public async Task DeleteCompany(int id)

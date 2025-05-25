@@ -5,7 +5,7 @@ namespace JobSearchApp.Core.Models.Vacancies;
 public class VacancyCreateDto
 {
     public string Title { get; set; } = null!;
-    public string Description { get; set; }
+    public string Description { get; set; } = null!;
     public double Salary { get; set; }
     public AttendanceMode AttendanceMode { get; set; }
     public Experience Experience { get; set; }

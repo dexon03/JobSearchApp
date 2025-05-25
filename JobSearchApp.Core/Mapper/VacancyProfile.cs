@@ -45,7 +45,6 @@ public class VacancyProfile : Profile
         CreateMap<Vacancy, VacancyGetDto>()
             .ForMember(dest => dest.Locations, opt => opt.MapFrom(src => src.LocationVacancy))
             .ForMember(dest => dest.Skills, opt => opt.MapFrom(src => src.VacancySkill));
-        ;
 
         CreateMap<LocationVacancy, LocationDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Location.Id))

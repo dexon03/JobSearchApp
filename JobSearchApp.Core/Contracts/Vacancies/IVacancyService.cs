@@ -1,5 +1,4 @@
 ﻿using JobSearchApp.Core.Models.Vacancies;
-using JobSearchApp.Data.Models.Vacancies;
 using X.PagedList;
 
 namespace JobSearchApp.Core.Contracts.Vacancies;

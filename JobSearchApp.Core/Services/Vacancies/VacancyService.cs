@@ -22,7 +22,7 @@ using ZiggyCreatures.Caching.Fusion;
 namespace JobSearchApp.Core.Services.Vacancies;
 
 public class VacancyService(
-    AppDbContext db,
+    IAppDbContext db,
     IMapper mapper,
     IFusionCache hybridCache,
     ILogger logger,
@@ -87,7 +87,6 @@ public class VacancyService(
     {
         var cacheKey =
             $"vacancies_recruiter_{recruiterId}_{vacancyFilter.Page}_{vacancyFilter.PageSize}_{vacancyFilter.Experience}_{vacancyFilter.Category}_{vacancyFilter.Location}_{vacancyFilter.AttendanceMode}_{vacancyFilter.Skill}";
-        ;
         var cacheTag = $"vacancies_recruiter_{recruiterId}";
 
         return await hybridCache.GetOrSetAsync(
@@ -109,12 +108,12 @@ public class VacancyService(
     {
         var vacancy = mapper.Map<Vacancy>(vacancyDto);
 
-        var result = db.Vacancies.Add(vacancy);
+        db.Vacancies.Add(vacancy);
         await db.SaveChangesAsync();
 
         await publishEndpoint.Publish(new VacancyCreatedEvent
         {
-            Id = result.Entity.Id
+            Id = vacancy.Id
         });
 
         await hybridCache.RemoveByTagAsync("vacancies");
@@ -122,8 +121,7 @@ public class VacancyService(
         await hybridCache.RemoveByTagAsync($"vacancies_recruiter_{vacancy.RecruiterId}");
         _log.Information("New vacancy {VacancyId} created. Cache invalidated.", vacancy.Id);
 
-        var mappedResult = mapper.Map<VacancyGetDto>(result.Entity);
-        return mappedResult;
+        return mapper.Map<VacancyGetDto>(vacancy);
     }
 
     public async Task<VacancyGetDto> UpdateVacancy(VacancyUpdateDto vacancy)
@@ -142,12 +140,12 @@ public class VacancyService(
         mapper.Map(vacancy, vacancyEntity);
         vacancyEntity.UpdatedAt = DateTime.UtcNow;
 
-        var result = db.Update(vacancyEntity);
+        db.Vacancies.Update(vacancyEntity);
         await db.SaveChangesAsync();
 
         await publishEndpoint.Publish(new VacancyUpdatedEvent
         {
-            Id = result.Entity.Id
+            Id = vacancyEntity.Id
         });
 
         await hybridCache.RemoveByTagAsync($"vacancy_{vacancy.Id}");
@@ -155,7 +153,7 @@ public class VacancyService(
         await hybridCache.RemoveByTagAsync("recommended_vacancies");
         await hybridCache.RemoveByTagAsync($"vacancies_recruiter_{vacancyEntity.RecruiterId}");
         _log.Information("Vacancy {VacancyId} updated. Cache invalidated.", vacancyEntity.Id);
-        return mapper.Map<VacancyGetDto>(result.Entity);
+        return mapper.Map<VacancyGetDto>(vacancyEntity);
     }
 
     public async Task DeleteVacancy(int id)
@@ -188,7 +186,7 @@ public class VacancyService(
 
         vacancy.IsActive = !vacancy.IsActive;
         vacancy.UpdatedAt = DateTime.UtcNow;
-        db.Update(vacancy);
+        db.Vacancies.Update(vacancy);
 
         await db.SaveChangesAsync();
 
@@ -226,54 +224,54 @@ public class VacancyService(
     public async Task<IPagedList<VacancyGetAllDto>> GetRecommendedVacanciesAsync(int userId,
         VacancyFilterParameters vacancyFilter)
     {
-        var cacheKey =
-            $"recommended_vacancies_{userId}_{vacancyFilter.Page}_{vacancyFilter.PageSize}_{vacancyFilter.SearchTerm}_{vacancyFilter.Experience}_{vacancyFilter.AttendanceMode}_{vacancyFilter.Skill}_{vacancyFilter.Category}_{vacancyFilter.Location}";
-        var cacheTag = "recommended_vacancies";
+        // var cacheKey =
+        //     $"recommended_vacancies_{userId}_{vacancyFilter.Page}_{vacancyFilter.PageSize}_{vacancyFilter.SearchTerm}_{vacancyFilter.Experience}_{vacancyFilter.AttendanceMode}_{vacancyFilter.Skill}_{vacancyFilter.Category}_{vacancyFilter.Location}";
+        // var cacheTag = "recommended_vacancies";
+        //
+        // return await hybridCache.GetOrSetAsync(
+        //     cacheKey,
+        //     async ctx =>
+        //     {
+        // _log.Information("Cache miss for {CacheKey}. Fetching recommended vacancies for user {UserId}...",
+        //     cacheKey, userId);
 
-        return await hybridCache.GetOrSetAsync(
-            cacheKey,
-            async ctx =>
-            {
-                _log.Information("Cache miss for {CacheKey}. Fetching recommended vacancies for user {UserId}...",
-                    cacheKey, userId);
+        // ReSharper disable once EntityFramework.NPlusOne.IncompleteDataQuery
+        var candidate = await db.CandidateProfile
+            .SingleOrDefaultAsync(x => x.UserId == userId);
+        if (candidate == null)
+        {
+            _log.Warning("Candidate profile not found for user {UserId}.", userId);
+            throw new ExceptionWithStatusCode("Candidate profile not found", HttpStatusCode.BadRequest);
+        }
 
-                // ReSharper disable once EntityFramework.NPlusOne.IncompleteDataQuery
-                var candidate = await db.CandidateProfile
-                    .SingleOrDefaultAsync(x => x.UserId == userId, ctx);
-                if (candidate == null)
-                {
-                    _log.Warning("Candidate profile not found for user {UserId}.", userId);
-                    throw new ExceptionWithStatusCode("Candidate profile not found", HttpStatusCode.BadRequest);
-                }
+        var recommendedVacanciesQuery = db.Vacancies
+            .Where(v => v.IsActive);
 
-                var recommendedVacanciesQuery = db.Vacancies
-                    .Where(v => v.IsActive);
+        recommendedVacanciesQuery = ApplyFilterIfNeeded(vacancyFilter, recommendedVacanciesQuery);
 
-                recommendedVacanciesQuery = ApplyFilterIfNeeded(vacancyFilter, recommendedVacanciesQuery);
+        if (candidate.Embedding is null)
+        {
+            var mappedRecommendedVacancies =
+                recommendedVacanciesQuery.ProjectTo<VacancyGetAllDto>(mapper.ConfigurationProvider);
 
-                if (candidate.Embedding is null)
-                {
-                    var mappedRecommendedVacancies =
-                        recommendedVacanciesQuery.ProjectTo<VacancyGetAllDto>(mapper.ConfigurationProvider);
+            var result =
+                await mappedRecommendedVacancies.ToPagedListAsync(vacancyFilter.Page, vacancyFilter.PageSize);
+            _log.Information("Fetched {Count} recommended vacancies for user {UserId} (no embedding).",
+                result.Count, userId);
+            return result;
+        }
 
-                    var result =
-                        await mappedRecommendedVacancies.ToPagedListAsync(vacancyFilter.Page, vacancyFilter.PageSize);
-                    _log.Information("Fetched {Count} recommended vacancies for user {UserId} (no embedding).",
-                        result.Count, userId);
-                    return result;
-                }
+        var recommendedVacancies = await recommendedVacanciesQuery
+            .OrderBy(x => candidate.Embedding.CosineDistance(x.Embedding!))
+            .ProjectTo<VacancyGetAllDto>(mapper.ConfigurationProvider)
+            .ToPagedListAsync(vacancyFilter.Page, vacancyFilter.PageSize);
 
-                var recommendedVacancies = await recommendedVacanciesQuery
-                    .OrderBy(x => candidate.Embedding.CosineDistance(x.Embedding!))
-                    .ProjectTo<VacancyGetAllDto>(mapper.ConfigurationProvider)
-                    .ToPagedListAsync(vacancyFilter.Page, vacancyFilter.PageSize, null, ctx);
-
-                _log.Information("Fetched {Count} recommended vacancies for user {UserId} using vector similarity.",
-                    recommendedVacancies.Count, userId);
-                return recommendedVacancies;
-            },
-            tags: [cacheTag]
-        );
+        _log.Information("Fetched {Count} recommended vacancies for user {UserId} using vector similarity.",
+            recommendedVacancies.Count, userId);
+        return recommendedVacancies;
+        // },
+        // tags: [cacheTag]
+        // );
     }
 
     private static IQueryable<Vacancy> ApplyFilterIfNeeded(VacancyFilterParameters vacancyFilter,
@@ -329,7 +327,8 @@ public class VacancyService(
                 {
                     vacancyQuery = vacancyQuery
                         .Where(v => v.Embedding != null)
-                        .OrderBy(v => searchEmbedding.CosineDistance(v.Embedding));
+                        // ReSharper disable once EntityFramework.ClientSideDbFunctionCall
+                        .OrderBy(v => searchEmbedding.CosineDistance(v.Embedding!));
 
                     _log.Information("Using vector similarity search for term: {SearchTerm}", vacancyFilter.SearchTerm);
                 }

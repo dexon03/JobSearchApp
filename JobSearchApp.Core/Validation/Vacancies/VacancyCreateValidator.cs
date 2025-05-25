@@ -6,7 +6,7 @@ namespace JobSearchApp.Core.Validation.Vacancies;
 
 public class VacancyCreateValidator : AbstractValidator<VacancyCreateDto>
 {
-    public VacancyCreateValidator(AppDbContext db)
+    public VacancyCreateValidator(IAppDbContext db)
     {
         RuleFor(x => x.Title).NotEmpty().WithMessage("Title is required");
         RuleFor(x => x.Description).NotEmpty().WithMessage("Description is required");

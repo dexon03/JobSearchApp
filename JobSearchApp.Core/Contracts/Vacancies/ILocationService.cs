@@ -1,5 +1,4 @@
 ﻿using JobSearchApp.Core.Models.Vacancies;
-using JobSearchApp.Data.Models.Common;
 
 namespace JobSearchApp.Core.Contracts.Vacancies;
 

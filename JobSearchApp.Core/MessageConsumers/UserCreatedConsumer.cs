@@ -1,4 +1,5 @@
-﻿using JobSearchApp.Core.Contracts.Profiles;
+﻿using System.Diagnostics.CodeAnalysis;
+using JobSearchApp.Core.Contracts.Profiles;
 using JobSearchApp.Core.MessageContracts;
 using JobSearchApp.Core.Models.Profiles;
 using JobSearchApp.Data.Enums;
@@ -6,6 +7,7 @@ using MassTransit;
 
 namespace JobSearchApp.Core.MessageConsumers;
 
+[ExcludeFromCodeCoverage]
 public sealed class UserCreatedConsumer(IProfileService profileService) : IConsumer<UserCreatedEvent>
 {
     public async Task Consume(ConsumeContext<UserCreatedEvent> context)

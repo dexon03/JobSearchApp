@@ -1,4 +1,5 @@
-﻿using JobSearchApp.Core.Contracts.Common;
+﻿using System.Diagnostics.CodeAnalysis;
+using JobSearchApp.Core.Contracts.Common;
 using JobSearchApp.Data;
 using JobSearchApp.Data.Models.Profiles;
 using JobSearchApp.Data.Models.Vacancies;
@@ -9,14 +10,15 @@ using Serilog;
 
 namespace JobSearchApp.Core.Services;
 
+[ExcludeFromCodeCoverage]
 public class EmbeddingService : IEmbeddingService
 {
-    private readonly AppDbContext _dbContext;
+    private readonly IAppDbContext _dbContext;
     private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingGenerator;
     private readonly ILogger _logger;
 
     public EmbeddingService(
-        AppDbContext dbContext,
+        IAppDbContext dbContext,
         IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
         ILogger logger)
     {
@@ -43,7 +45,7 @@ public class EmbeddingService : IEmbeddingService
 
         await GenerateEmbedding(vacancy);
 
-        _dbContext.Update(vacancy);
+        _dbContext.Vacancies.Update(vacancy);
         await _dbContext.SaveChangesAsync();
         _logger.Information("Embedding generated for vacancy {VacancyId}", vacancy.Id);
     }
@@ -66,7 +68,7 @@ public class EmbeddingService : IEmbeddingService
         _logger.Information("Generating embedding for candidate profile {CandidateId}", candidateProfile.Id);
         await GenerateEmbedding(candidateProfile);
         
-        _dbContext.Update(candidateProfile);
+        _dbContext.CandidateProfile.Update(candidateProfile);
         await _dbContext.SaveChangesAsync();
         
         _logger.Information("Embedding generated for candidate profile {CandidateId}", candidateProfile.Id);

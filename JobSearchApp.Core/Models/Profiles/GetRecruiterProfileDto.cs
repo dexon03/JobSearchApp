@@ -1,13 +1,12 @@
 ﻿using JobSearchApp.Data.Models.Common;
-using JobSearchApp.Data.Models.Profiles;
 
 namespace JobSearchApp.Core.Models.Profiles;
 
 public class GetRecruiterProfileDto
 {
     public int Id { get; set; }
-    public string Name { get; set; }
-    public string Surname { get; set; }
+    public string Name { get; set; }  = null!;
+    public string Surname { get; set; }  = null!;
     public string? Email { get; set; }
     public string? PhoneNumber { get; set; }
     public DateOnly DateBirth { get; set; }

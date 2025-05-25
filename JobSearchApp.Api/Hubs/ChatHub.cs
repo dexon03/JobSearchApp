@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.SignalR;
 namespace JobSearchApp.Api.Hubs;
 
 [Authorize]
-public class ChatHub(AppDbContext db) : Hub
+public class ChatHub(IAppDbContext db) : Hub
 {
     public Task JoinChatGroup(string chatId)
     {

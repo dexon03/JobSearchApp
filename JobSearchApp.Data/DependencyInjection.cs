@@ -14,5 +14,6 @@ public static class DependencyInjection
             opt.UseNpgsql(configuration.GetConnectionString("PostgresConnection"), o => o.UseVector())
                 .EnableSensitiveDataLogging()
                 .LogTo(Log.Logger.Information, LogLevel.Information));
+        services.AddScoped<IAppDbContext, AppDbContext>();
     }
 }

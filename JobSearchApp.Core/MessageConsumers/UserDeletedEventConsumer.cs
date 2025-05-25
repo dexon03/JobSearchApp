@@ -1,9 +1,11 @@
-﻿using JobSearchApp.Core.Contracts.Profiles;
+﻿using System.Diagnostics.CodeAnalysis;
+using JobSearchApp.Core.Contracts.Profiles;
 using JobSearchApp.Core.MessageContracts;
 using MassTransit;
 
 namespace JobSearchApp.Core.MessageConsumers;
 
+[ExcludeFromCodeCoverage]
 public class UserDeletedEventConsumer(IProfileService profileService) : IConsumer<UserDeletedEvent>
 {
     public async Task Consume(ConsumeContext<UserDeletedEvent> context)
